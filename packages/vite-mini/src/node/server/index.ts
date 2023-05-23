@@ -8,20 +8,27 @@ import { DEFAULT_DEV_PORT } from '../constants'
 import { resolveHostname, resolveServerUrls } from '../utils'
 import type { Logger } from '../logger'
 import { createLogger, printServerUrls } from '../logger'
+import { indexHtmlMiddleware } from './middlewares/base'
 
 interface InlineConfig {
 
 }
 
-interface ViteDevServer {
+export interface ViteDevServer {
   resolvedUrls: ResolvedServerUrls | null
   config: {
+    root: string
     server: CommonServerOptions
     logger: Logger
   }
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
   printUrls(): void
+  transformIndexHtml(
+    url: string,
+    html: string,
+    originalUrl?: string,
+  ): Promise<string>
 }
 
 export interface ResolvedServerUrls {
@@ -55,6 +62,7 @@ export async function _createServer(
       server: {
         strictPort: false,
       },
+      root: '/',
       logger: createLogger(),
     },
     async listen(port?: number, isRestart?: boolean) {
@@ -81,6 +89,7 @@ export async function _createServer(
     },
     resolvedUrls: null,
   }
+  middlewares.use(indexHtmlMiddleware(server))
 
   return server
 }

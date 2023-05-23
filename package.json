@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test-serve": "vitest run -c vitest.config.e2e.ts",
-    "cz": "cz"
+    "cz": "cz",
+    "dev": "pnpm run -C packages/vite-mini dev"
   },
   "keywords": [],
   "author": "",

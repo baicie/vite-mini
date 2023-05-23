@@ -1,6 +1,7 @@
 import os from 'node:os'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
+import path from 'node:path'
 import type { CommonServerOptions } from './http'
 import type { ResolvedServerUrls } from './server'
 import { loopbackHosts } from './constants'
@@ -19,8 +20,8 @@ export async function resolveHostname(
     host = optionsHost
 
   return {
-    host,
-    name: host,
+    host: host ?? 'localhost',
+    name: host ?? 'localhost',
   }
 }
 
@@ -75,4 +76,20 @@ export async function resolveServerUrls(
       })
   }
   return { local, network }
+}
+
+const postfixRE = /[?#].*$/s
+export function cleanUrl(url: string): string {
+  return url.replace(postfixRE, '')
+}
+
+export const isWindows = os.platform() === 'win32'
+
+export function normalizePath(id: string): string {
+  return path.posix.normalize(isWindows ? slash(id) : id)
+}
+
+const windowsSlashRE = /\\/g
+export function slash(p: string): string {
+  return p.replace(windowsSlashRE, '/')
 }

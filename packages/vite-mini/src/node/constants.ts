@@ -8,3 +8,5 @@ export const loopbackHosts = new Set([
   '::1',
   '0000:0000:0000:0000:0000:0000:0000:0001',
 ])
+
+export const FS_PREFIX = '/@fs/'

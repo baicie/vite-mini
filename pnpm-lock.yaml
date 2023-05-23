@@ -63,6 +63,9 @@ importers:
       chalk:
         specifier: ^5.2.0
         version: registry.npmmirror.com/chalk@5.2.0
+      etag:
+        specifier: ^1.8.1
+        version: registry.npmmirror.com/etag@1.8.1
       picocolors:
         specifier: ^1.0.0
         version: registry.npmmirror.com/picocolors@1.0.0
@@ -82,6 +85,9 @@ importers:
       '@types/connect':
         specifier: ^3.4.35
         version: 3.4.35
+      '@types/etag':
+        specifier: ^1.8.1
+        version: registry.npmmirror.com/@types/etag@1.8.1
       '@types/node':
         specifier: ^20.2.3
         version: registry.npmmirror.com/@types/node@20.2.3
@@ -5030,6 +5036,14 @@ packages:
     dev: true
     optional: true
 
+  registry.npmmirror.com/@types/etag@1.8.1:
+    resolution: {integrity: sha512-bsKkeSqN7HYyYntFRAmzcwx/dKW4Wa+KVMTInANlI72PWLQmOpZu96j0OqHZGArW4VQwCmJPteQlXaUDeOB0WQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/etag/-/etag-1.8.1.tgz}
+    name: '@types/etag'
+    version: 1.8.1
+    dependencies:
+      '@types/node': registry.npmmirror.com/@types/node@20.2.3
+    dev: true
+
   registry.npmmirror.com/@types/node@20.2.3:
     resolution: {integrity: sha512-pg9d0yC4rVNWQzX8U7xb4olIOFuuVL9za3bzMT2pu2SU0SNEi66i2qrvhE2qt0HvkhuCaWJu7pLNOt/Pj8BIrw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/node/-/node-20.2.3.tgz}
     name: '@types/node'
@@ -5099,6 +5113,13 @@ packages:
     name: emoji-regex
     version: 8.0.0
     dev: true
+
+  registry.npmmirror.com/etag@1.8.1:
+    resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/etag/-/etag-1.8.1.tgz}
+    name: etag
+    version: 1.8.1
+    engines: {node: '>= 0.6'}
+    dev: false
 
   registry.npmmirror.com/fsevents@2.3.2:
     resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/fsevents/-/fsevents-2.3.2.tgz}
