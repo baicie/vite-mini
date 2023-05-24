@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { NextFunction } from 'express'
 import type { ViteDevServer } from '..'
+import { send } from '../send'
 
 export type NextHandleFunction = (req: Request, res: Response, next: NextFunction) => void
 
@@ -18,7 +19,7 @@ export function indexHtmlMiddleware(
         try {
           const html = fs.readFileSync(filename, 'utf-8')
           return send(req, res, html, 'html', {
-            headers: server.config.server.headers,
+
           })
         }
         catch (error) {

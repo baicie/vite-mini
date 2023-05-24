@@ -1,8 +1,4 @@
-import type {
-  IncomingMessage,
-  OutgoingHttpHeaders,
-  ServerResponse,
-} from 'node:http'
+import type { Request, Response } from 'express'
 import getEtag from 'etag'
 import type { SourceMap } from 'rollup'
 import { getCodeWithSourcemap } from '../sourcemap'
@@ -17,12 +13,12 @@ const alias: Record<string, string | undefined> = {
 export interface SendOptions {
   etag?: string
   cacheControl?: string
-  headers?: OutgoingHttpHeaders
+  headers?: unknown
   map?: SourceMap | null
 }
 export function send(
-  req: IncomingMessage,
-  res: ServerResponse,
+  req: Request,
+  res: Response,
   // eslint-disable-next-line n/prefer-global/buffer
   content: string | Buffer,
   type: string,
