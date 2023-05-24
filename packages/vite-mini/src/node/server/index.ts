@@ -1,6 +1,6 @@
 import type * as http from 'node:http'
-import connect from 'connect'
 import { consola } from 'consola'
+import express from 'express'
 import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
 
@@ -8,7 +8,8 @@ import { DEFAULT_DEV_PORT } from '../constants'
 import { resolveHostname, resolveServerUrls } from '../utils'
 import type { Logger } from '../logger'
 import { createLogger, printServerUrls } from '../logger'
-import { indexHtmlMiddleware } from './middlewares/base'
+import { indexHtmlMiddleware } from './middlewares/index-html'
+import { htmlFallBackMiddleware } from './middlewares/html-fallback'
 
 interface InlineConfig {
 
@@ -52,9 +53,10 @@ export async function _createServer(
   // 加载vite.config.ts
   // const config = await resolveConfig(inlineConfig, 'serve')
   // 前面是各种配置文件
-  const middlewares = connect()
+  const app = express()
+  // const app = connect()
   // https options
-  const httpServer = await resolveHttpServer(middlewares)
+  const httpServer = await resolveHttpServer(app)
 
   const server: ViteDevServer = {
     httpServer,
@@ -67,7 +69,6 @@ export async function _createServer(
     },
     async listen(port?: number, isRestart?: boolean) {
       // 启动服务
-      consola.success('启动服务')
       await startServer(server, port)
       // 拼接url
       if (httpServer) {
@@ -89,8 +90,13 @@ export async function _createServer(
     },
     resolvedUrls: null,
   }
-  middlewares.use(indexHtmlMiddleware(server))
 
+  // index.html
+  app.use(htmlFallBackMiddleware('/'))
+
+  app.use(indexHtmlMiddleware(httpServer))
+
+  consola.log(process.cwd())
   return server
 }
 

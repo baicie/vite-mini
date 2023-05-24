@@ -1,6 +1,5 @@
 import type { Server as HttpServer } from 'node:http'
 import type { ServerOptions as HttpsServerOptions } from 'node:https'
-import type { Server } from 'connect'
 
 export interface CommonServerOptions {
   strictPort: boolean | undefined
@@ -51,7 +50,7 @@ export async function httpServerStart(
 
 // 创建服务
 export async function resolveHttpServer(
-  app: Server,
+  app: any,
   httpsOptions?: HttpsServerOptions,
 ): Promise<HttpServer> {
   const { createServer } = await import('node:http')

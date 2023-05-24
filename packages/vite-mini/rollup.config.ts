@@ -22,7 +22,7 @@ function createNodeConfig() {
       format: 'esm',
       externalLiveBindings: false,
       freeze: false,
-      sourcemap: false,
+      sourcemap: true,
     },
     onwarn(warning, warn) {
       if (warning.message.includes('Circular dependency'))
@@ -37,7 +37,7 @@ function createNodeConfig() {
       nodeResolve({ preferBuiltins: true }),
       typescript({
         tsconfig: path.resolve(__dirname, 'src/node/tsconfig.json'),
-        sourceMap: false,
+        sourceMap: true,
         declaration: true,
         declarationDir: './dist/node',
       }),
