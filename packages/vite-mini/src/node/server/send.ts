@@ -13,7 +13,7 @@ const alias: Record<string, string | undefined> = {
 export interface SendOptions {
   etag?: string
   cacheControl?: string
-  headers?: unknown
+  headers?: Record<string, string | undefined>
   map?: SourceMap | null
 }
 export function send(

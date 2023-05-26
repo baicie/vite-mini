@@ -8,6 +8,7 @@ import { DEFAULT_DEV_PORT } from '../constants'
 import { resolveHostname, resolveServerUrls } from '../utils'
 import type { Logger } from '../logger'
 import { createLogger, printServerUrls } from '../logger'
+import { createDepsOptimizer } from '../optimizer'
 import { indexHtmlMiddleware } from './middlewares/index-html'
 import { htmlFallBackMiddleware } from './middlewares/html-fallback'
 
@@ -64,10 +65,12 @@ export async function _createServer(
       server: {
         strictPort: false,
       },
-      root: '/',
+      root: process.cwd(),
       logger: createLogger(),
     },
     async listen(port?: number, isRestart?: boolean) {
+      //
+      await createDepsOptimizer(server)
       // 启动服务
       await startServer(server, port)
       // 拼接url

@@ -14,7 +14,7 @@ export function indexHtmlMiddleware(
   ) {
     const url = req.url
     if (url.endsWith('.html')) {
-      const filename = path.join(process.cwd(), url.replace(/\\/g, '/'))
+      const filename = path.join(server.config.root, url.replace(/\\/g, '/'))
       if (fs.existsSync(filename)) {
         try {
           const html = fs.readFileSync(filename, 'utf-8')

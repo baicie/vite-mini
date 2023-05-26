@@ -10,3 +10,7 @@ export const loopbackHosts = new Set([
 ])
 
 export const FS_PREFIX = '/@fs/'
+
+export const VITECACHE = '.vite-mini'
+
+export const METADATA = '_metadata.json'
