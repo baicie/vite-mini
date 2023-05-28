@@ -28,15 +28,20 @@ export interface DepOptimizationMetadata {
   depInfoList: OptimizedDepInfo[]
 }
 
-async function loadCachedDepOptimizationMetadata(
+export async function loadCachedDepOptimizationMetadata(
   server: ViteDevServer,
 ): Promise<DepOptimizationMetadata | undefined> {
-  const cachedMetadata: undefined | DepOptimizationMetadata = undefined
-  const base = server.config.root
-  const depsCacgeDir = path.join(base, 'node_modules', VITECACHE)
-  const cacheMetaDataPath = path.join(depsCacgeDir, METADATA)
+  let cachedMetadata: undefined | DepOptimizationMetadata
+  try {
+    const base = server.config.root
+    const depsCacgeDir = path.join(base, 'node_modules', VITECACHE)
+    const cacheMetaDataPath = path.join(depsCacgeDir, METADATA)
 
-  fsp.readFile(cacheMetaDataPath, 'utf-8')
+    cachedMetadata = JSON.parse(await fsp.readFile(cacheMetaDataPath, 'utf-8'))
+  }
+  catch (error) {
+
+  }
 
   return cachedMetadata
 }
