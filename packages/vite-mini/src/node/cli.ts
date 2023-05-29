@@ -8,6 +8,7 @@ cli
   .command('[root]', 'start dev server')
   .alias('server') // vite server
   .alias('dev') // vite dev
+  .option('-d, --debug [feat]', '[string | boolean] show debug logs')
   .option('--port <port>', '[number] specify port')
   .action(async (root: string, options) => {
     const { createServer } = await import('./server')

@@ -1,11 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import fsp from 'node:fs/promises'
-import type { NextHandleFunction } from 'connect'
 import type { ViteDevServer } from '../index'
 import { cleanUrl, normalizePath } from '../../utils'
 import { FS_PREFIX } from '../../constants'
 import { send } from '../send'
+import type { NextHandleFunction } from './index-html'
 
 export function indexHtmlMiddleware(
   server: ViteDevServer,

@@ -97,7 +97,7 @@ export async function _createServer(
   // index.html
   app.use(htmlFallBackMiddleware('/'))
 
-  app.use(indexHtmlMiddleware(httpServer))
+  app.use(indexHtmlMiddleware(server))
 
   consola.log(process.cwd())
   return server

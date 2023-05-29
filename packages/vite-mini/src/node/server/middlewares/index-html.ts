@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { NextFunction } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import type { ViteDevServer } from '..'
 import { send } from '../send'
 
