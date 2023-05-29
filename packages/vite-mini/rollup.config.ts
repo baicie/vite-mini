@@ -49,6 +49,7 @@ function createNodeConfig() {
       json(),
       cjsPatchPlugin(),
     ],
+    external: ['esbuild'],
   })
 }
 
