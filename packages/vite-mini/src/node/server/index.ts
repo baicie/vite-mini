@@ -4,7 +4,7 @@ import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
 
 import { DEFAULT_DEV_PORT } from '../constants'
-import { resolveHostname, resolveServerUrls } from '../utils'
+import { normalizePath, resolveHostname, resolveServerUrls } from '../utils'
 import type { Logger } from '../logger'
 import { createLogger, printServerUrls } from '../logger'
 import { createDepsOptimizer } from '../optimizer'
@@ -64,7 +64,7 @@ export async function _createServer(
       server: {
         strictPort: false,
       },
-      root: process.cwd(),
+      root: normalizePath(process.cwd()),
       logger: createLogger(),
     },
     async listen(port?: number, isRestart?: boolean) {

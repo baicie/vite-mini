@@ -101,6 +101,9 @@ importers:
       '@types/connect-history-api-fallback':
         specifier: ^1.5.0
         version: registry.npmmirror.com/@types/connect-history-api-fallback@1.5.0
+      '@types/debug':
+        specifier: ^4.1.8
+        version: 4.1.8
       '@types/etag':
         specifier: ^1.8.1
         version: registry.npmmirror.com/@types/etag@1.8.1
@@ -996,6 +999,12 @@ packages:
       '@types/node': registry.npmmirror.com/@types/node@20.2.3
     dev: true
 
+  /@types/debug@4.1.8:
+    resolution: {integrity: sha512-/vPO1EPOs306Cvhwv7KfVfYvOJqA/S/AXjaHQiJboCZzcNDb+TIJFN9/2C9DZ//ijSKWioNyUxD792QmDJ+HKQ==}
+    dependencies:
+      '@types/ms': 0.7.31
+    dev: true
+
   /@types/estree@1.0.1:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
     dev: true
@@ -1012,6 +1021,10 @@ packages:
     resolution: {integrity: sha512-Y/uImid8aAwrEA24/1tcRZwpxX3pIFTSilcNDKSPn+Y2iDywSEachzRuvgAYYLR3wpGXAsMbv5lvKLDZLeYPAw==}
     dependencies:
       '@types/unist': 2.0.6
+    dev: true
+
+  /@types/ms@0.7.31:
+    resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
     dev: true
 
   /@types/normalize-package-data@2.4.1:

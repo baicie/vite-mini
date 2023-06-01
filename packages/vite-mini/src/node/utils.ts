@@ -2,6 +2,7 @@ import os from 'node:os'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
+import debug from 'debug'
 import type { CommonServerOptions } from './http'
 import type { ResolvedServerUrls } from './server'
 import { loopbackHosts } from './constants'
@@ -92,4 +93,20 @@ export function normalizePath(id: string): string {
 const windowsSlashRE = /\\/g
 export function slash(p: string): string {
   return p.replace(windowsSlashRE, '/')
+}
+
+export type ViteMDebugScope = `vitem:${string}`
+
+export function createDebugger(
+  namespace: ViteMDebugScope,
+): debug.Debugger['log'] | undefined {
+  const log = debug(namespace)
+
+  const enabled = log.enabled
+
+  if (enabled) {
+    return (...args: [string, ...any[]]) => {
+      log(...args)
+    }
+  }
 }

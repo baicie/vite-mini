@@ -3,6 +3,7 @@ import fsp from 'node:fs/promises'
 import type { Plugin } from 'esbuild'
 import esbuild from 'esbuild'
 import type { ViteDevServer } from '../server'
+import { resolveId } from '../plugins/resolve'
 
 export async function scanImports(
   config: ViteDevServer['config'],
@@ -88,8 +89,11 @@ function esbuildScanPlugin(
           filter: /.*/,
         },
         async ({ path: id, importer, pluginData }) => {
-          console.log(id, importer, pluginData)
-          return {}
+          const rosolveId = resolveId(id, config, importer)
+          return {
+            path: rosolveId,
+            namespace: htmlTypesRE.exec(rosolveId) ? 'html' : undefined,
+          }
         },
       )
 
