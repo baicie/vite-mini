@@ -1,5 +1,4 @@
 import type * as http from 'node:http'
-import { consola } from 'consola'
 import express from 'express'
 import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
@@ -99,7 +98,6 @@ export async function _createServer(
 
   app.use(indexHtmlMiddleware(server))
 
-  consola.log(process.cwd())
   return server
 }
 
