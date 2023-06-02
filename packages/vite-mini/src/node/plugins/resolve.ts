@@ -66,21 +66,29 @@ function resolvePackageData(
   config: ViteDevServer['config'],
   importer: string,
 ) {
-  // 获取地址
-  const dir = path.join(config.root, 'node_modules', id)
-  // if (importer && path.isAbsolute(importer) && fs.existsSync(importer))
-  //   dir = path.dirname(importer)
+  let basedir = config.root
+  while (basedir) {
+    // 获取地址
+    const dir = path.join(basedir, 'node_modules', id)
+    if (fs.existsSync(dir)) {
+    // if (importer && path.isAbsolute(importer) && fs.existsSync(importer))
+    //   dir = path.dirname(importer)
 
-  console.log(dir)
-  // 是否是软连接
-  const isLink = fs.lstatSync(dir).isSymbolicLink()
-  const pkgPath = isLink ? resolveSymbolicLink(dir) : dir
-  // 读取内容
-  const res = readPackageSync({ cwd: pkgPath })
+      console.log(dir)
+      // 是否是软连接
+      const isLink = fs.lstatSync(dir).isSymbolicLink()
+      const pkgPath = isLink ? resolveSymbolicLink(dir) : dir
+      // 读取内容
+      const res = readPackageSync({ cwd: pkgPath })
 
-  return {
-    pkgData: res,
-    pkgPath,
+      return {
+        pkgData: res,
+        pkgPath,
+      }
+    }
+    else {
+      basedir = path.dirname(basedir)
+    }
   }
 }
 
