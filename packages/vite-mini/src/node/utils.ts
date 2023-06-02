@@ -26,6 +26,7 @@ export async function resolveHostname(
   }
 }
 
+// 重写一下
 export async function resolveServerUrls(
   server: Server,
   options: CommonServerOptions,
@@ -110,3 +111,6 @@ export function createDebugger(
     }
   }
 }
+
+// 裸模块 npm包
+export const bareImportRE = /^(?![a-zA-Z]:)[\w@](?!.*:\/\/)/
