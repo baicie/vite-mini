@@ -1,9 +1,12 @@
 import path from 'node:path'
 import fsp from 'node:fs/promises'
-import type { Plugin } from 'esbuild'
+import type { Loader, Plugin } from 'esbuild'
 import esbuild from 'esbuild'
+import { consola } from 'consola'
+import colors from 'picocolors'
 import type { ViteDevServer } from '../server'
 import { resolveId } from '../plugins/resolve'
+import { CSS_LANGS_RE, JS_TYPES_RE } from '../constants'
 
 export async function scanImports(
   config: ViteDevServer['config'],
@@ -44,28 +47,73 @@ function esbuildScanPlugin(
   deps: Record<string, string>,
 ): Plugin {
   console.log('esbuildScanPlugin')
-
+  // 缓存处理后的vue script代码用于onload返回
+  const script: Record<string, unknown> = {}
   return {
     name: 'vitem:dep-scan',
     setup(build) {
+      build.onResolve({ filter: CSS_LANGS_RE }, externalUnlessEntry)
+
       build.onResolve({
         filter: htmlTypesRE,
-      }, ({ path }) => {
-        const temp = path
-        if (path.includes('.html')) {
-          return {
-            path: temp,
-            namespace: 'html',
-          }
+      }, ({ path: id, importer }) => {
+        const rosolveId = resolveId(id, config, importer)
+        return {
+          path: rosolveId,
+          namespace: 'html',
         }
       })
 
+      build.onResolve(({ filter: /^[\w@][^:]/ }), async ({ path: id, importer, pluginData }) => {
+        const rosolveId = resolveId(id, config, importer)
+        if (rosolveId) {
+          return {
+            path: rosolveId,
+          }
+        }
+        else {
+          // 不支持的类型
+          return externalUnlessEntry({ path: id })
+        }
+      })
+
+      // 入口派发
+      build.onResolve(
+        {
+          filter: /.*/,
+        },
+        async ({ path: id, importer, pluginData }) => {
+          consola.info(colors.red(id))
+          const rosolveId = resolveId(id, config, importer)
+          if (rosolveId) {
+            return {
+              path: rosolveId,
+              namespace: htmlTypesRE.exec(rosolveId) ? 'html' : undefined,
+            }
+          }
+          else {
+            // 不支持的类型
+            return externalUnlessEntry({ path: id })
+          }
+        },
+      )
+
+      // 处理html vue内容
       build.onLoad(
         { filter: htmlTypesRE, namespace: 'html' },
         async ({ path }) => {
           const raw = await fsp.readFile(path, 'utf-8')
           let js = ''
-          // while ((match = scriptRE.exec(raw))) {
+          if (path.endsWith('.vue')) {
+            const match = srcRE.exec(raw)
+            if (match) {
+              js = match[2]
+              return {
+                loader: 'ts',
+                contents: js,
+              }
+            }
+          }
 
           // }
           // 匹配文件中的特定字符 如果有多个可以搭配while匹配多个
@@ -84,25 +132,33 @@ function esbuildScanPlugin(
         },
       )
 
-      build.onResolve(
-        {
-          filter: /.*/,
-        },
-        async ({ path: id, importer, pluginData }) => {
-          const rosolveId = resolveId(id, config, importer)
-          return {
-            path: rosolveId,
-            namespace: htmlTypesRE.exec(rosolveId) ? 'html' : undefined,
-          }
-        },
-      )
+      // 处理js相关内容
+      build.onLoad({ filter: JS_TYPES_RE }, async ({ path: id }) => {
+        let ext = path.extname(id).split('.')[1]
+        if (ext === 'mjs')
+          ext = 'js'
 
-      build.onResolve(({ filter: /^[\w@][^:]/ }), async ({ path: id, importer, pluginData }) => {
-        console.log(id, importer, pluginData)
+        const contents = await fsp.readFile(id, 'utf-8')
+
         return {
-          path: id,
+          loader: ext as Loader,
+          contents,
+        }
+      })
+
+      // css怎么进来的
+      build.onLoad({ filter: CSS_LANGS_RE }, () => {
+        return {
+
         }
       })
     },
+  }
+}
+
+function externalUnlessEntry({ path }: { path: string }) {
+  return {
+    path,
+    external: true,
   }
 }

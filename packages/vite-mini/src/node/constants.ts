@@ -14,3 +14,6 @@ export const FS_PREFIX = '/@fs/'
 export const VITECACHE = '.vite-mini'
 
 export const METADATA = '_metadata.json'
+
+export const CSS_LANGS_RE = /\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)(?:$|\?)/
+export const JS_TYPES_RE = /\.(?:j|t)sx?$|\.mjs$/

@@ -21,6 +21,7 @@ export interface ViteDevServer {
     root: string
     server: CommonServerOptions
     logger: Logger
+    cacheDeps: Record<string, string>
   }
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
@@ -66,6 +67,7 @@ export async function _createServer(
       },
       root: normalizePath(process.cwd()),
       logger: createLogger(),
+      cacheDeps: {},
     },
     async listen(port?: number, isRestart?: boolean) {
       //
