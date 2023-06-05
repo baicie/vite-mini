@@ -24,7 +24,8 @@ module.exports = {  
        footer: '关联关闭的issue，例如：#1, #2(可选):\n',
        confirmCommit: '确定提交?'
    },
-   allowCustomScopes: true,
-   allowBreakingChanges: ['feat', 'fix'],
-   subjectLimit: 100
+  scopes: [{ name: 'phoenix-ui' }, { name: 'docs' }, { name: 'storybook' }, { name: 'internal' },{name:'cli'}],
+  allowCustomScopes: true,
+  allowBreakingChanges: ['feat', 'fix'],
+  subjectLimit: 100
 };

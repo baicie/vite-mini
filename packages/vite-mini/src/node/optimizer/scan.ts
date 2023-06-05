@@ -105,7 +105,7 @@ function esbuildScanPlugin(
           const raw = await fsp.readFile(path, 'utf-8')
           let js = ''
           if (path.endsWith('.vue')) {
-            const match = srcRE.exec(raw)
+            const match = scriptRE.exec(raw)
             if (match) {
               js = match[2]
               return {
