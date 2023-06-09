@@ -32,6 +32,8 @@ export function resolveId(
     debug?.(`[relative] ${colors.cyan(id)} -> ${colors.dim(res)}`)
   }
 
+  //
+
   if (bareImportRE.test(id)) {
     res = resolveBareImportId(id, config, importer)
     debug?.(`[bareImportRE] ${colors.cyan(id)} -> ${colors.dim(res)}`)

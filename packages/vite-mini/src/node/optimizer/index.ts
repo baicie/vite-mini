@@ -6,8 +6,6 @@ export async function createDepsOptimizer(
   server: ViteDevServer,
 ) {
   const metaData = await loadCachedDepOptimizationMetadata(server)
-  if (!metaData) {
-    console.log('createDepsOptimizer', server.config.root, metaData)
+  if (!metaData)
     scanImports(server.config)
-  }
 }

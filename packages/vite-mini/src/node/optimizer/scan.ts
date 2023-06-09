@@ -1,9 +1,7 @@
 import path from 'node:path'
 import fsp from 'node:fs/promises'
-import type { Loader, Plugin } from 'esbuild'
+import type { Loader, OnLoadResult, Plugin } from 'esbuild'
 import esbuild from 'esbuild'
-import { consola } from 'consola'
-import colors from 'picocolors'
 import type { ViteDevServer } from '../server'
 import { resolveId } from '../plugins/resolve'
 import { CSS_LANGS_RE, JS_TYPES_RE } from '../constants'
@@ -11,7 +9,6 @@ import { CSS_LANGS_RE, JS_TYPES_RE } from '../constants'
 export async function scanImports(
   config: ViteDevServer['config'],
 ) {
-  console.log('scanImports')
   const deps: Record<string, string> = {}
 
   const filename = path.join(config.root, '/index.html')
@@ -41,14 +38,15 @@ const htmlTypesRE = /\.(html|vue)$/
 export const scriptRE
   = /(<script(?:\s+[a-z_:][-\w:]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^"'<>=\s]+))?)*\s*>)(.*?)<\/script>/gis
 const srcRE = /\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s'">]+))/i
+export const virtualModuleRE = /^virtual-module:.*/
+export const virtualModulePrefix = 'virtual-module:'
 
 function esbuildScanPlugin(
   config: ViteDevServer['config'],
   deps: Record<string, string>,
 ): Plugin {
-  console.log('esbuildScanPlugin')
   // 缓存处理后的vue script代码用于onload返回
-  const script: Record<string, unknown> = {}
+  const scripts: Record<string, OnLoadResult> = {}
   return {
     name: 'vitem:dep-scan',
     setup(build) {
@@ -64,9 +62,18 @@ function esbuildScanPlugin(
         }
       })
 
+      // 处理 virtual-module
+      build.onResolve({ filter: virtualModuleRE }, ({ path }) => {
+        return {
+          path: path.replace(virtualModulePrefix, ''),
+          namespace: 'script',
+        }
+      })
+
       build.onResolve(({ filter: /^[\w@][^:]/ }), async ({ path: id, importer, pluginData }) => {
         const rosolveId = resolveId(id, config, importer)
         if (rosolveId) {
+          deps[id] = id
           return {
             path: rosolveId,
           }
@@ -83,7 +90,6 @@ function esbuildScanPlugin(
           filter: /.*/,
         },
         async ({ path: id, importer, pluginData }) => {
-          consola.info(colors.red(id))
           const rosolveId = resolveId(id, config, importer)
           if (rosolveId) {
             return {
@@ -98,20 +104,41 @@ function esbuildScanPlugin(
         },
       )
 
+      // 处理vue script
+      build.onLoad({ filter: /.*/, namespace: 'script' }, ({ path }) => {
+        return scripts[path]
+      })
+
       // 处理html vue内容
       build.onLoad(
         { filter: htmlTypesRE, namespace: 'html' },
         async ({ path }) => {
           const raw = await fsp.readFile(path, 'utf-8')
           let js = ''
+          let scriptId = 0
+          let match: RegExpExecArray | null
           if (path.endsWith('.vue')) {
-            const match = scriptRE.exec(raw)
-            if (match) {
-              js = match[2]
-              return {
+            while ((match = scriptRE.exec(raw))) {
+              const [,,content] = match
+              const key = `${path}?id=${scriptId++}`
+
+              const contents = content + extractImportPaths(content)
+              scripts[key] = {
                 loader: 'ts',
-                contents: js,
+                contents,
+                pluginData: {
+                  htmlType: { loader: 'ts' },
+                },
               }
+
+              const vartualPath = `"${virtualModulePrefix}${key}"`
+              js += `export * from ${vartualPath}\n`
+            }
+
+            js += '\nexport default {}'
+            return {
+              loader: 'ts',
+              contents: js,
             }
           }
 
@@ -161,4 +188,24 @@ function externalUnlessEntry({ path }: { path: string }) {
     path,
     external: true,
   }
+}
+
+export const multilineCommentsRE = /\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g
+export const singlelineCommentsRE = /\/\/.*/g
+export const requestQuerySplitRE = /\?(?!.*[/|}])/
+export const importsRE
+  = /(?<!\/\/.*)(?<=^|;|\*\/)\s*import(?!\s+type)(?:[\w*{}\n\r\t, ]+from)?\s*("[^"]+"|'[^']+')\s*(?=$|;|\/\/|\/\*)/gm
+function extractImportPaths(code: string) {
+  // empty singleline & multiline comments to avoid matching comments
+  code = code
+    .replace(multilineCommentsRE, '/* */')
+    .replace(singlelineCommentsRE, '')
+
+  let js = ''
+  let m
+  importsRE.lastIndex = 0
+  while ((m = importsRE.exec(code)) != null)
+    js += `\nimport ${m[1]}`
+
+  return js
 }
