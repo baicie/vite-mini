@@ -70,19 +70,21 @@ function esbuildScanPlugin(
         }
       })
 
-      build.onResolve(({ filter: /^[\w@][^:]/ }), async ({ path: id, importer, pluginData }) => {
-        const rosolveId = resolveId(id, config, importer)
-        if (rosolveId) {
-          deps[id] = id
-          return {
-            path: rosolveId,
+      build.onResolve(({ filter: /^[\w@][^:]/ }),
+        async ({ path: id, importer, pluginData }) => {
+          const rosolveId = resolveId(id, config, importer)
+          if (deps[id])
+            return externalUnlessEntry({ path: id })
+
+          if (rosolveId) {
+            deps[id] = id
+            return externalUnlessEntry({ path: id })
           }
-        }
-        else {
+          else {
           // 不支持的类型
-          return externalUnlessEntry({ path: id })
-        }
-      })
+            return externalUnlessEntry({ path: id })
+          }
+        })
 
       // 入口派发
       build.onResolve(
