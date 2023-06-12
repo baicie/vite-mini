@@ -6,6 +6,17 @@ export async function createDepsOptimizer(
   server: ViteDevServer,
 ) {
   const metaData = await loadCachedDepOptimizationMetadata(server)
+  let deps: Record<string, string> = {}
   if (!metaData)
-    scanImports(server.config)
+    deps = await scanImports(server.config)
+
+  //
+  runOptimizeDeps(server.config, deps)
+}
+
+export function runOptimizeDeps(
+  config: ViteDevServer['config'],
+  deps: Record<string, string>,
+) {
+  console.log('runOptimizeDeps', config, deps)
 }

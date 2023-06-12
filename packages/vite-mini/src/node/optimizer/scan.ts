@@ -8,7 +8,7 @@ import { CSS_LANGS_RE, JS_TYPES_RE } from '../constants'
 
 export async function scanImports(
   config: ViteDevServer['config'],
-) {
+): Promise<Record<string, string>> {
   const deps: Record<string, string> = {}
 
   const filename = path.join(config.root, '/index.html')
@@ -29,9 +29,9 @@ export async function scanImports(
     preserveSymlinks: false,
   })
 
-  res.rebuild().then(() => {
-    console.log('rebuild', deps)
-  })
+  await res.rebuild()
+
+  return deps
 }
 
 const htmlTypesRE = /\.(html|vue)$/
