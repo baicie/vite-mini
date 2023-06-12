@@ -77,7 +77,7 @@ function esbuildScanPlugin(
             return externalUnlessEntry({ path: id })
 
           if (rosolveId) {
-            deps[id] = id
+            deps[id] = rosolveId
             return externalUnlessEntry({ path: id })
           }
           else {

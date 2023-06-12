@@ -42,7 +42,7 @@ export function resolveId(
   if (id !== res)
     config.cacheDeps[id] = res
 
-  return res
+  return normalizePath(res)
 }
 
 // 返回最终地址

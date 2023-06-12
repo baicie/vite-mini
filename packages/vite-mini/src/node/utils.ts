@@ -1,11 +1,12 @@
-import os from 'node:os'
+import { createHash } from 'node:crypto'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
+import os from 'node:os'
 import path from 'node:path'
 import debug from 'debug'
+import { loopbackHosts } from './constants'
 import type { CommonServerOptions } from './http'
 import type { ResolvedServerUrls } from './server'
-import { loopbackHosts } from './constants'
 
 export async function resolveHostname(
   optionsHost: string | boolean | undefined,
@@ -114,3 +115,8 @@ export function createDebugger(
 
 // 裸模块 npm包
 export const bareImportRE = /^(?![a-zA-Z]:)[\w@](?!.*:\/\/)/
+
+// eslint-disable-next-line n/prefer-global/buffer
+export function getHash(text: Buffer | string): string {
+  return createHash('sha256').update(text).digest('hex').substring(0, 8)
+}

@@ -1,4 +1,7 @@
+import path from 'node:path'
+import fs from 'node:fs'
 import type { ViteDevServer } from '../server'
+import { VITECACHE } from '../constants'
 import { loadCachedDepOptimizationMetadata } from './optimizer'
 import { scanImports } from './scan'
 
@@ -18,5 +21,16 @@ export function runOptimizeDeps(
   config: ViteDevServer['config'],
   deps: Record<string, string>,
 ) {
-  console.log('runOptimizeDeps', config, deps)
+  const base = config.root
+  // 拼接缓存目录
+  const depsCacgeDir = path.join(base, 'node_modules', VITECACHE)
+  // 创建dir
+  fs.mkdirSync(depsCacgeDir, { recursive: true })
+
+  fs.writeFileSync(
+    path.resolve(depsCacgeDir, 'package.json'),
+    '{\n  "type": "module"\n}\n',
+  )
+
+  // prepareEsbuildOptimizerRun
 }
