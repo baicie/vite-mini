@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs'
+import esbuild from 'esbuild'
 import type { ViteDevServer } from '../server'
 import { VITECACHE } from '../constants'
 import { loadCachedDepOptimizationMetadata } from './optimizer'
@@ -17,7 +18,7 @@ export async function createDepsOptimizer(
   runOptimizeDeps(server.config, deps)
 }
 
-export function runOptimizeDeps(
+export async function runOptimizeDeps(
   config: ViteDevServer['config'],
   deps: Record<string, string>,
 ) {
@@ -31,6 +32,29 @@ export function runOptimizeDeps(
     path.resolve(depsCacgeDir, 'package.json'),
     '{\n  "type": "module"\n}\n',
   )
-
+  console.log('runOptimizeDeps', deps)
   // prepareEsbuildOptimizerRun
+  const context = await esbuild.context({
+    absWorkingDir: process.cwd(),
+    entryPoints: Object.keys(deps),
+    bundle: true,
+    platform: 'browser',
+    format: 'esm',
+    logLevel: 'error',
+    external: [],
+    target: 'es2020',
+    splitting: true,
+    sourcemap: true,
+    outdir: depsCacgeDir,
+    ignoreAnnotations: true,
+    metafile: true,
+    charset: 'utf8',
+  })
+
+  context.rebuild().then((result) => {
+    const output = result.metafile.outputs
+    console.log(Object.keys(result.metafile.inputs).length)
+    for (const item of Object.keys(output))
+      console.log(item)
+  })
 }
