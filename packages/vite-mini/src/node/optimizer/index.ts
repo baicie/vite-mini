@@ -2,9 +2,22 @@ import path from 'node:path'
 import fs from 'node:fs'
 import esbuild from 'esbuild'
 import type { ViteDevServer } from '../server'
-import { VITECACHE } from '../constants'
+import { METADATA, VITECACHE } from '../constants'
+import { normalizePath } from '../utils'
 import { loadCachedDepOptimizationMetadata } from './optimizer'
 import { scanImports } from './scan'
+
+interface OptimizerMetadata {
+  optimized: Record<string, {
+    src: string
+    file: string
+  }>
+  chunks: Record<string, {
+    file: string
+  }>
+}
+
+type OptimizerType = 'optimized' | 'chunks'
 
 export async function createDepsOptimizer(
   server: ViteDevServer,
@@ -23,8 +36,12 @@ export async function runOptimizeDeps(
   deps: Record<string, string>,
 ) {
   const base = config.root
+  const metadata: OptimizerMetadata = {
+    optimized: {},
+    chunks: {},
+  }
   // 拼接缓存目录
-  const depsCacgeDir = path.join(base, 'node_modules', VITECACHE)
+  const depsCacgeDir = path.join(base, 'node_modules', VITECACHE, 'deps')
   // 创建dir
   fs.mkdirSync(depsCacgeDir, { recursive: true })
 
@@ -32,7 +49,7 @@ export async function runOptimizeDeps(
     path.resolve(depsCacgeDir, 'package.json'),
     '{\n  "type": "module"\n}\n',
   )
-  console.log('runOptimizeDeps', deps)
+
   // prepareEsbuildOptimizerRun
   const context = await esbuild.context({
     absWorkingDir: process.cwd(),
@@ -53,8 +70,33 @@ export async function runOptimizeDeps(
 
   context.rebuild().then((result) => {
     const output = result.metafile.outputs
-    console.log(Object.keys(result.metafile.inputs).length)
-    for (const item of Object.keys(output))
-      console.log(item)
+
+    for (const item of Object.keys(output)) {
+      if (!item.endsWith('.map')) {
+        const type: OptimizerType = item.includes('chunk') ? 'chunks' : 'optimized'
+
+        setOptimizerMetadata(metadata, type, path.basename(item), {
+          file: path.basename(item),
+          src: normalizePath(path.relative(depsCacgeDir, output[item].entryPoint ?? '')),
+        })
+      }
+    }
+
+    fs.writeFileSync(
+      path.resolve(depsCacgeDir, METADATA),
+      JSON.stringify(metadata),
+    )
   })
+}
+
+function setOptimizerMetadata(
+  optimizer: OptimizerMetadata,
+  type: OptimizerType,
+  key: string,
+  content: {
+    file: string
+    src: string
+  },
+) {
+  optimizer[type][key] = content
 }

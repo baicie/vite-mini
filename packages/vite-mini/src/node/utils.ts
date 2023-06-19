@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import crypto from 'node:crypto'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import os from 'node:os'
@@ -118,5 +118,5 @@ export const bareImportRE = /^(?![a-zA-Z]:)[\w@](?!.*:\/\/)/
 
 // eslint-disable-next-line n/prefer-global/buffer
 export function getHash(text: Buffer | string): string {
-  return createHash('sha256').update(text).digest('hex').substring(0, 8)
+  return crypto.createHash('sha256').update(text).digest('hex').substring(0, 8)
 }
