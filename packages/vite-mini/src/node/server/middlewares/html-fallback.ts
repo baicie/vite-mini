@@ -23,6 +23,8 @@ export function htmlFallBackMiddleware(
     ],
   })
 
+  // 给根路径加上index.html
+
   return function vitemHistoryHtmlFallbackMiddleware(req, res, next) {
     return historyHtmlFallbackMiddleware(req, res, next)
   }

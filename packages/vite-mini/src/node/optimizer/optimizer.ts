@@ -1,7 +1,9 @@
 import path from 'node:path'
 import fsp from 'node:fs/promises'
+import fs from 'node:fs'
 import type { ViteDevServer } from '../server'
 import { METADATA, VITECACHE } from '../constants'
+import type { OptimizerMetadata } from './index'
 
 export interface ExportsData {
   hasImports: boolean
@@ -30,17 +32,18 @@ export interface DepOptimizationMetadata {
 
 export async function loadCachedDepOptimizationMetadata(
   server: ViteDevServer,
-): Promise<DepOptimizationMetadata | undefined> {
-  let cachedMetadata: undefined | DepOptimizationMetadata
+): Promise<OptimizerMetadata | undefined> {
+  let cachedMetadata: undefined | OptimizerMetadata
   try {
     const base = server.config.root
-    const depsCacgeDir = path.join(base, 'node_modules', VITECACHE)
+    const depsCacgeDir = path.join(base, 'node_modules', VITECACHE, 'deps')
     const cacheMetaDataPath = path.join(depsCacgeDir, METADATA)
-
+    if (!fs.existsSync(cacheMetaDataPath))
+      return cachedMetadata
     cachedMetadata = JSON.parse(await fsp.readFile(cacheMetaDataPath, 'utf-8'))
   }
   catch (error) {
-
+    console.error(error)
   }
 
   return cachedMetadata

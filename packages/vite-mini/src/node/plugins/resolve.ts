@@ -40,7 +40,7 @@ export function resolveId(
   }
 
   if (id !== res)
-    config.cacheDeps[id] = res
+    config.cacheDeps[id] = normalizePath(res)
 
   return normalizePath(res)
 }
