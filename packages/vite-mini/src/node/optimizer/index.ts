@@ -7,7 +7,7 @@ import { normalizePath } from '../utils'
 import { loadCachedDepOptimizationMetadata } from './optimizer'
 import { scanImports } from './scan'
 
-interface OptimizerMetadata {
+export interface OptimizerMetadata {
   optimized: Record<string, {
     src: string
     file: string
@@ -22,13 +22,15 @@ type OptimizerType = 'optimized' | 'chunks'
 export async function createDepsOptimizer(
   server: ViteDevServer,
 ) {
-  const metaData = await loadCachedDepOptimizationMetadata(server)
+  let metadata = await loadCachedDepOptimizationMetadata(server)
   let deps: Record<string, string> = {}
-  if (!metaData)
+  if (!metadata) {
     deps = await scanImports(server.config)
-
-  //
-  runOptimizeDeps(server.config, deps)
+    metadata = await runOptimizeDeps(server.config, deps)
+  }
+  const cache = server.config.metaDataCache
+  for (const key of Object.keys(metadata.optimized))
+    cache[key] = metadata.optimized[key].src
 }
 
 export async function runOptimizeDeps(
@@ -68,15 +70,15 @@ export async function runOptimizeDeps(
     charset: 'utf8',
   })
 
-  context.rebuild().then((result) => {
+  const result = await context.rebuild().then((result) => {
     const output = result.metafile.outputs
 
     for (const item of Object.keys(output)) {
       if (!item.endsWith('.map')) {
         const type: OptimizerType = item.includes('chunk') ? 'chunks' : 'optimized'
-
-        setOptimizerMetadata(metadata, type, path.basename(item), {
-          file: path.basename(item),
+        const basename = path.basename(item)
+        setOptimizerMetadata(metadata, type, basename.replace(path.extname(basename), ''), {
+          file: basename,
           src: normalizePath(path.relative(depsCacgeDir, output[item].entryPoint ?? '')),
         })
       }
@@ -86,7 +88,11 @@ export async function runOptimizeDeps(
       path.resolve(depsCacgeDir, METADATA),
       JSON.stringify(metadata),
     )
+
+    return metadata
   })
+
+  return result
 }
 
 function setOptimizerMetadata(

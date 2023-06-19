@@ -10,6 +10,7 @@ import { createLogger, printServerUrls } from '../logger'
 import { createDepsOptimizer } from '../optimizer'
 import { indexHtmlMiddleware } from './middlewares/index-html'
 import { htmlFallBackMiddleware } from './middlewares/html-fallback'
+import { transfromMiddleware } from './middlewares/transform'
 
 interface InlineConfig {
 
@@ -22,15 +23,11 @@ export interface ViteDevServer {
     server: CommonServerOptions
     logger: Logger
     cacheDeps: Record<string, string>
+    metaDataCache: Record<string, string>
   }
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
   printUrls(): void
-  transformIndexHtml(
-    url: string,
-    html: string,
-    originalUrl?: string,
-  ): Promise<string>
 }
 
 export interface ResolvedServerUrls {
@@ -68,6 +65,7 @@ export async function _createServer(
       root: normalizePath(process.cwd()),
       logger: createLogger(),
       cacheDeps: {},
+      metaDataCache: {},
     },
     async listen(port?: number, isRestart?: boolean) {
       //
@@ -94,6 +92,8 @@ export async function _createServer(
     },
     resolvedUrls: null,
   }
+
+  app.use(transfromMiddleware(server))
 
   // index.html
   app.use(htmlFallBackMiddleware('/'))

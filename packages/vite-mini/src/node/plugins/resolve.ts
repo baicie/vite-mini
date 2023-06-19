@@ -35,7 +35,7 @@ export function resolveId(
   //
 
   if (bareImportRE.test(id)) {
-    res = resolveBareImportId(id, config, importer)
+    res = resolveBareImportId(id, config)
     debug?.(`[bareImportRE] ${colors.cyan(id)} -> ${colors.dim(res)}`)
   }
 
@@ -49,9 +49,8 @@ export function resolveId(
 function resolveBareImportId(
   id: string,
   config: ViteDevServer['config'],
-  importer: string,
 ) {
-  const { pkgData = {}, pkgPath = '' } = resolvePackageData(id, config, importer)
+  const { pkgData = {}, pkgPath = '' } = resolvePackageData(id, config)
 
   let module = ''
 
@@ -71,7 +70,6 @@ function resolveBareImportId(
 function resolvePackageData(
   id: string,
   config: ViteDevServer['config'],
-  importer: string,
 ): {
     pkgData: undefined | NormalizedPackageJson
     pkgPath: string

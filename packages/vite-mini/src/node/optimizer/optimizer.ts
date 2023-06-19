@@ -2,6 +2,7 @@ import path from 'node:path'
 import fsp from 'node:fs/promises'
 import type { ViteDevServer } from '../server'
 import { METADATA, VITECACHE } from '../constants'
+import type { OptimizerMetadata } from './index'
 
 export interface ExportsData {
   hasImports: boolean
@@ -19,22 +20,13 @@ export interface OptimizedDepInfo {
   exportsData?: Promise<ExportsData>
 }
 
-export interface DepOptimizationMetadata {
-  hash: string
-  browserHash: string
-  optimized: Record<string, OptimizedDepInfo>
-  chunks: Record<string, OptimizedDepInfo>
-  discovered: Record<string, OptimizedDepInfo>
-  depInfoList: OptimizedDepInfo[]
-}
-
 export async function loadCachedDepOptimizationMetadata(
   server: ViteDevServer,
-): Promise<DepOptimizationMetadata | undefined> {
-  let cachedMetadata: undefined | DepOptimizationMetadata
+): Promise<OptimizerMetadata | undefined> {
+  let cachedMetadata: undefined | OptimizerMetadata
   try {
     const base = server.config.root
-    const depsCacgeDir = path.join(base, 'node_modules', VITECACHE)
+    const depsCacgeDir = path.join(base, 'node_modules', VITECACHE, 'deps')
     const cacheMetaDataPath = path.join(depsCacgeDir, METADATA)
 
     cachedMetadata = JSON.parse(await fsp.readFile(cacheMetaDataPath, 'utf-8'))
