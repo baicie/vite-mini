@@ -21,15 +21,6 @@ export interface OptimizedDepInfo {
   exportsData?: Promise<ExportsData>
 }
 
-export interface DepOptimizationMetadata {
-  hash: string
-  browserHash: string
-  optimized: Record<string, OptimizedDepInfo>
-  chunks: Record<string, OptimizedDepInfo>
-  discovered: Record<string, OptimizedDepInfo>
-  depInfoList: OptimizedDepInfo[]
-}
-
 export async function loadCachedDepOptimizationMetadata(
   server: ViteDevServer,
 ): Promise<OptimizerMetadata | undefined> {

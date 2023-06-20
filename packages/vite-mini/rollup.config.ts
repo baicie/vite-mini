@@ -3,7 +3,6 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Plugin, RollupOptions } from 'rollup'
 import { defineConfig } from 'rollup'
-import consola from 'consola'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 import commonjs from '@rollup/plugin-commonjs'
@@ -87,7 +86,6 @@ const __require = require;
 
 // 打印rollup参数
 export default (commandL: any): RollupOptions[] => {
-  consola.log(commandL)
   return defineConfig([
     createNodeConfig(),
   ])

@@ -74,7 +74,7 @@ export async function runOptimizeDeps(
     charset: 'utf8',
   })
 
-  const res = await context.rebuild().then((result) => {
+  const result = await context.rebuild().then((result) => {
     const output = result.metafile.outputs
 
     for (const item of Object.keys(output)) {
@@ -96,7 +96,7 @@ export async function runOptimizeDeps(
     return metadata
   })
 
-  return res
+  return result
 }
 
 function setOptimizerMetadata(

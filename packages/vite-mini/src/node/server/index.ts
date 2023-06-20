@@ -10,7 +10,7 @@ import { createLogger, printServerUrls } from '../logger'
 import { createDepsOptimizer } from '../optimizer'
 import { indexHtmlMiddleware } from './middlewares/index-html'
 import { htmlFallBackMiddleware } from './middlewares/html-fallback'
-import { transformMiddleware } from './middlewares/transform'
+import { transfromMiddleware } from './middlewares/transform'
 
 interface InlineConfig {
 
@@ -65,6 +65,7 @@ export async function _createServer(
       root: normalizePath(process.cwd()),
       logger: createLogger(),
       cacheDeps: {},
+      transformCaches: {},
     },
     async listen(port?: number, isRestart?: boolean) {
       //
@@ -92,7 +93,7 @@ export async function _createServer(
     resolvedUrls: null,
   }
 
-  app.use(transformMiddleware(server))
+  app.use(transfromMiddleware(server))
 
   // index.html
   app.use(htmlFallBackMiddleware('/'))
