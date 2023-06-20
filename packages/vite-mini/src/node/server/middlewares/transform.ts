@@ -4,8 +4,9 @@ import { init as importInit, parse as importParse } from 'es-module-lexer'
 import type { NextFunction, Request, Response } from 'express'
 import MagicStr from 'magic-string'
 import { resolveId } from '../../plugins/resolve'
-import { createDebugger } from '../../utils'
+import { createDebugger, normalizePath } from '../../utils'
 import type { ViteDevServer } from '../index'
+import { send } from '../send'
 import type { NextHandleFunction } from './index-html'
 
 const debug = createDebugger('vitem:transfrom')
@@ -16,11 +17,14 @@ export function transfromMiddleware(
   return async function vitemTransformMiddleware(
     req: Request, res: Response, next: NextFunction,
   ) {
+    if (['.ts', '.js', '.css'].some(item => req.url.endsWith(item))) {
     // 拿到最后返回结果
-    const result = await resolveCodeAndTransForm(
-      req.url,
-      server.config,
-    )
+      const result = await resolveCodeAndTransForm(
+        req.url,
+        server.config,
+      ) ?? ''
+      return send(req, res, result, 'js', {})
+    }
     next()
   }
 }
@@ -48,6 +52,8 @@ async function resolveCodeAndTransForm(
     code,
     config,
   )
+
+  return res
 }
 
 // 转换import
@@ -57,10 +63,10 @@ async function transfromImport(
   config: ViteDevServer['config'],
 ) {
   await importInit
-  // console.log('code', code, config)
+
   const magicstr = new MagicStr(source)
-  console.log('magicstr1', magicstr.original)
-  const [imports, exports] = importParse(source)
+
+  const [imports] = importParse(source)
   imports.forEach((imp) => {
     if (imp.n) {
       const resId = resolveId(
@@ -68,18 +74,13 @@ async function transfromImport(
         config,
         id,
       )
-      const newPath = path.relative(config.root, resId)
-      console.log(newPath)
-      // newPath = newPath.concat(source.slice(imp.e + 1))
-      // source = source.slice(0, imp.s) + newPath
-      // source.slice(imp.s, imp.e)
+      const newPath = `/${normalizePath(path.relative(config.root, resId))}`
+
       magicstr.overwrite(imp.s, imp.e, newPath, { contentOnly: true })
     }
   })
 
-  console.log('magicstr', magicstr.original)
-
-  console.log('imports', imports)
+  return magicstr.toString()
 }
 
 // 源码逻辑备注
