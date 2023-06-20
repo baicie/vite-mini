@@ -1,9 +1,10 @@
 import type * as http from 'node:http'
+import path from 'node:path'
 import express from 'express'
 import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
 
-import { DEFAULT_DEV_PORT } from '../constants'
+import { DEFAULT_DEV_PORT, VITECACHE } from '../constants'
 import { normalizePath, resolveHostname, resolveServerUrls } from '../utils'
 import type { Logger } from '../logger'
 import { createLogger, printServerUrls } from '../logger'
@@ -23,7 +24,11 @@ export interface ViteDevServer {
     server: CommonServerOptions
     logger: Logger
     cacheDeps: Record<string, string>
-    transformCaches: Record<string, string>
+    transformCaches: Record<string, {
+      src: string
+      file: string
+    }>
+    cacheDir: string
   }
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
@@ -66,6 +71,7 @@ export async function _createServer(
       logger: createLogger(),
       cacheDeps: {},
       transformCaches: {},
+      cacheDir: path.join(normalizePath(process.cwd()), 'node_modules', VITECACHE, 'deps'),
     },
     async listen(port?: number, isRestart?: boolean) {
       //

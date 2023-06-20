@@ -16,7 +16,7 @@ export function resolveId(
 ) {
   const getcacheDep = config.cacheDeps[id]
   let res = id
-  if (getcacheDep)
+  if (getcacheDep && !bareImportRE.test(id))
     return getcacheDep
 
   // url
@@ -32,10 +32,15 @@ export function resolveId(
     debug?.(`[relative] ${colors.cyan(id)} -> ${colors.dim(res)}`)
   }
 
-  //
-
   if (bareImportRE.test(id)) {
-    res = resolveBareImportId(id, config)
+    if (
+      Object.keys(config.cacheDeps).includes(id)
+    )
+      res = normalizePath(path.join(config.cacheDir, config.cacheDeps[id]))
+
+    else
+      res = resolveBareImportId(id, config)
+
     debug?.(`[bareImportRE] ${colors.cyan(id)} -> ${colors.dim(res)}`)
   }
 

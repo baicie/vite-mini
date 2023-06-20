@@ -33,7 +33,7 @@ export async function createDepsOptimizer(
   const cachedDeps = server.config.cacheDeps
   for (const key of Object.keys(metaData.optimized)) {
     // 之前缓存的
-    cachedDeps[key] = metaData.optimized[key].src
+    cachedDeps[key] = metaData.optimized[key].file
   }
 }
 
