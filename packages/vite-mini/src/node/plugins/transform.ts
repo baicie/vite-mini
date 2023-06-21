@@ -14,7 +14,7 @@ export async function transfromCode(
     const vueToJs = transformVue(
       id, code, config,
     )
-    console.log(vueToJs)
+
     return vueToJs
   }
   else {
@@ -60,19 +60,14 @@ function transformVue(
       id,
     })
 
-    code += temp.code
+    code += `\n${temp.code}`
     code += '\n_sfc_main_.render = render'
   }
 
-  if (descriptor.styles) {
-    // const css = vueCompiler.compileStyle({
-    //   source: descriptor.styles.map(style => style.content).join('\n'),
-    //   id,
-    //   filename: path.basename(id),
-    // })
-
+  if (descriptor.styles)
     code += `\nimport '${id}?type=style'`
-  }
+
+  code += '\nexport default _sfc_main_'
 
   return code
 }

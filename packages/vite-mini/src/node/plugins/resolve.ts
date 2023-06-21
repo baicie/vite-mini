@@ -44,9 +44,6 @@ export function resolveId(
     debug?.(`[bareImportRE] ${colors.cyan(id)} -> ${colors.dim(res)}`)
   }
 
-  if (id !== res)
-    config.cacheDeps[id] = normalizePath(res)
-
   return normalizePath(res)
 }
 

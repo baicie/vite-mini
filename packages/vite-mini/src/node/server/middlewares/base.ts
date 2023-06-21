@@ -11,20 +11,17 @@ export function indexHtmlMiddleware(
   server: ViteDevServer,
 ): NextHandleFunction {
   return async function viteIndexHtmlMiddleware(req, res, next) {
-    console.log('index1')
     if (res.writableEnded)
       return next()
 
     const url = req.url && cleanUrl(req.url)
-    console.log('index')
     if (url?.endsWith('.html') && req.headers['sec-fetch-dest'] !== 'script') {
       const filename = getHtmlFilename(url, server)
       if (fs.existsSync(filename)) {
         try {
-          let html = await fsp.readFile(filename, 'utf-8')
-          html = await server.transformIndexHtml(url, html, req.originalUrl)
+          const html = await fsp.readFile(filename, 'utf-8')
+
           return send(req, res, html, 'html', {
-            headers: server.config.server.headers,
           })
         }
         catch (e) {

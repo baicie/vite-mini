@@ -4,6 +4,7 @@ import { init as importInit, parse as importParse } from 'es-module-lexer'
 import type { NextFunction, Request, Response } from 'express'
 import MagicStr from 'magic-string'
 import { consola } from 'consola'
+import colors from 'picocolors'
 import { resolveId } from '../../plugins/resolve'
 import { createDebugger, normalizePath } from '../../utils'
 import type { ViteDevServer } from '../index'
@@ -19,6 +20,7 @@ export function transfromMiddleware(
   return async function vitemTransformMiddleware(
     req: Request, res: Response, next: NextFunction,
   ) {
+    debug?.(colors.red(`--> ${req.url}`))
     if (['.ts', '.js', '.css', '.vue'].some(item => req.url.endsWith(item))) {
     // 拿到最后返回结果
       const result = await resolveCodeAndTransForm(
@@ -26,6 +28,22 @@ export function transfromMiddleware(
         server.config,
       ) ?? ''
       return send(req, res, result, 'js', {})
+    }
+    else if (['.svg'].some(item => req.url.endsWith(item))) {
+      try {
+        let result = ''
+        let resPath = ''
+        resPath = normalizePath(path.join(server.config.root, 'public', req.url))
+        if (!fs.existsSync(resPath))
+          resPath = normalizePath(path.join(server.config.root, req.url))
+
+        result = fs.readFileSync(resPath, 'utf8')
+
+        return send(req, res, result, 'js', {})
+      }
+      catch (error) {
+        consola.error(error)
+      }
     }
     next()
   }
@@ -71,7 +89,7 @@ async function transfromImport(
     const magicstr = new MagicStr(source)
 
     const [imports] = importParse(source)
-    console.log(imports)
+
     imports.forEach((imp) => {
       if (imp.n) {
         const resId = resolveId(
