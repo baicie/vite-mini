@@ -27,6 +27,7 @@ export interface ViteDevServer {
     transformCaches: Record<string, {
       src: string
       file: string
+      code?: string
     }>
     cacheDir: string
   }

@@ -3,10 +3,12 @@ import path from 'node:path'
 import { init as importInit, parse as importParse } from 'es-module-lexer'
 import type { NextFunction, Request, Response } from 'express'
 import MagicStr from 'magic-string'
+import { consola } from 'consola'
 import { resolveId } from '../../plugins/resolve'
 import { createDebugger, normalizePath } from '../../utils'
 import type { ViteDevServer } from '../index'
 import { send } from '../send'
+import { transfromCode } from '../../plugins/transform'
 import type { NextHandleFunction } from './index-html'
 
 const debug = createDebugger('vitem:transfrom')
@@ -17,7 +19,7 @@ export function transfromMiddleware(
   return async function vitemTransformMiddleware(
     req: Request, res: Response, next: NextFunction,
   ) {
-    if (['.ts', '.js', '.css'].some(item => req.url.endsWith(item))) {
+    if (['.ts', '.js', '.css', '.vue'].some(item => req.url.endsWith(item))) {
     // 拿到最后返回结果
       const result = await resolveCodeAndTransForm(
         req.url,
@@ -45,15 +47,16 @@ async function resolveCodeAndTransForm(
     return
   // 拿到源码
   const code = fs.readFileSync(sourceId, { encoding: 'utf-8' })
-  // const responseCode = await transfromCode(id, code, config)
 
-  const res = await transfromImport(
+  const jscode = await transfromCode(id, code, config)
+
+  const importResetCode = await transfromImport(
     sourceId,
-    code,
+    jscode,
     config,
   )
 
-  return res
+  return importResetCode
 }
 
 // 转换import
@@ -62,25 +65,31 @@ async function transfromImport(
   source: string,
   config: ViteDevServer['config'],
 ) {
-  await importInit
+  try {
+    await importInit
 
-  const magicstr = new MagicStr(source)
+    const magicstr = new MagicStr(source)
 
-  const [imports] = importParse(source)
-  imports.forEach((imp) => {
-    if (imp.n) {
-      const resId = resolveId(
-        imp.n,
-        config,
-        id,
-      )
-      const newPath = `/${normalizePath(path.relative(config.root, resId))}`
+    const [imports] = importParse(source)
+    console.log(imports)
+    imports.forEach((imp) => {
+      if (imp.n) {
+        const resId = resolveId(
+          imp.n,
+          config,
+          id,
+        )
+        const newPath = `/${normalizePath(path.relative(config.root, resId))}`
 
-      magicstr.overwrite(imp.s, imp.e, newPath, { contentOnly: true })
-    }
-  })
+        magicstr.overwrite(imp.s, imp.e, newPath, { contentOnly: true })
+      }
+    })
 
-  return magicstr.toString()
+    return magicstr.toString()
+  }
+  catch (error) {
+    consola.error(error)
+  }
 }
 
 // 源码逻辑备注
