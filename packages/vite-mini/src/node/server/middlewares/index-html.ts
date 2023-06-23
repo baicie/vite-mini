@@ -18,6 +18,7 @@ export function indexHtmlMiddleware(
       if (fs.existsSync(filename)) {
         try {
           const html = fs.readFileSync(filename, 'utf-8')
+          res.set('Content-Type', 'text/html')
           return send(req, res, html, 'html', {
 
           })

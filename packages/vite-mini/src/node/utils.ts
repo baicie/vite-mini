@@ -120,3 +120,7 @@ export const bareImportRE = /^(?![a-zA-Z]:)[\w@](?!.*:\/\/)/
 export function getHash(text: Buffer | string): string {
   return crypto.createHash('sha256').update(text).digest('hex').substring(0, 8)
 }
+
+export function clearUrl(url: string): string {
+  return url.split('?')[0]
+}

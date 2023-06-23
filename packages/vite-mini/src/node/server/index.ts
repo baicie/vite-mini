@@ -12,6 +12,7 @@ import { createDepsOptimizer } from '../optimizer'
 import { indexHtmlMiddleware } from './middlewares/index-html'
 import { htmlFallBackMiddleware } from './middlewares/html-fallback'
 import { transfromMiddleware } from './middlewares/transform'
+import { servePublicMiddleware } from './middlewares/static'
 
 interface InlineConfig {
 
@@ -100,8 +101,11 @@ export async function _createServer(
     resolvedUrls: null,
   }
 
+  // code
   app.use(transfromMiddleware(server))
 
+  app.use(servePublicMiddleware(path.join(server.config.root, 'public')))
+  app.use(servePublicMiddleware(path.join(server.config.root, '')))
   // index.html
   app.use(htmlFallBackMiddleware('/'))
 

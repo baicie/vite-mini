@@ -6,7 +6,7 @@ import MagicStr from 'magic-string'
 import { consola } from 'consola'
 import colors from 'picocolors'
 import { resolveId } from '../../plugins/resolve'
-import { createDebugger, normalizePath } from '../../utils'
+import { clearUrl, createDebugger, normalizePath } from '../../utils'
 import type { ViteDevServer } from '../index'
 import { send } from '../send'
 import { transfromCode } from '../../plugins/transform'
@@ -21,29 +21,17 @@ export function transfromMiddleware(
     req: Request, res: Response, next: NextFunction,
   ) {
     debug?.(colors.red(`--> ${req.url}`))
-    if (['.ts', '.js', '.css', '.vue'].some(item => req.url.endsWith(item))) {
+    const type = req.params.type
+    if (['.ts', '.js', '.css', '.vue'].some(item => req.url.includes(item))
+      || type === 'style'
+    ) {
     // 拿到最后返回结果
       const result = await resolveCodeAndTransForm(
         req.url,
         server.config,
       ) ?? ''
+      res.type('text/javascript')
       return send(req, res, result, 'js', {})
-    }
-    else if (['.svg'].some(item => req.url.endsWith(item))) {
-      try {
-        let result = ''
-        let resPath = ''
-        resPath = normalizePath(path.join(server.config.root, 'public', req.url))
-        if (!fs.existsSync(resPath))
-          resPath = normalizePath(path.join(server.config.root, req.url))
-
-        result = fs.readFileSync(resPath, 'utf8')
-
-        return send(req, res, result, 'js', {})
-      }
-      catch (error) {
-        consola.error(error)
-      }
     }
     next()
   }
@@ -55,11 +43,11 @@ async function resolveCodeAndTransForm(
 ) {
   if (id === '/')
     return
-  const sourceId = resolveId(
+  const sourceId = clearUrl(resolveId(
     id,
     config,
     '',
-  )
+  ))
 
   if (!fs.existsSync(sourceId))
     return

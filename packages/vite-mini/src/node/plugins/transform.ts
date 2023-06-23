@@ -10,38 +10,36 @@ export async function transfromCode(
   code: string,
   config: ViteDevServer['config'],
 ) {
+  let temp = code
   if (id.endsWith('.vue')) {
     const vueToJs = transformVue(
-      id, code, config,
+      id, code,
     )
 
-    return vueToJs
+    temp = vueToJs
   }
-  else {
-    let loader: Loader = 'ts'
-    if (id.endsWith('.css'))
-      loader = 'css'
-    else if (id.endsWith('.js'))
-      loader = 'js'
-
-    const res = await esbuild.transform(code, {
-      loader,
-      platform: 'browser',
-      format: 'esm',
-      logLevel: 'error',
-      target: 'es2020',
-      sourcemap: true,
-      charset: 'utf8',
-    })
-
-    return res.code
+  else if (id.endsWith('.css') || id.includes('type=style')) {
+    temp = transformCss(id, code)
   }
+
+  const loader: Loader = 'ts'
+
+  const res = await esbuild.transform(temp, {
+    loader,
+    platform: 'browser',
+    format: 'esm',
+    logLevel: 'error',
+    target: 'es2020',
+    sourcemap: true,
+    charset: 'utf8',
+  })
+
+  return res.code
 }
 
 function transformVue(
   id: string,
   source: string,
-  config: ViteDevServer['config'],
 ): string {
   const { descriptor } = vueCompiler.parse(source)
   let code = ''
@@ -69,5 +67,33 @@ function transformVue(
 
   code += '\nexport default _sfc_main_'
 
+  return code
+}
+
+function transformCss(
+  id: string,
+  source: string,
+) {
+  let cssCode = source
+  if (id.includes('type=style')) {
+    const { descriptor } = vueCompiler.parse(source)
+    cssCode = vueCompiler.compileStyle({
+      id,
+      filename: id,
+      source: descriptor.styles.map(style => style.content).join('\n'),
+    }).code
+  }
+
+  const code = `
+  function insertStyle(css) {\n
+    const el = document.createElement('style')\n
+    el.setAttribute('type', 'text/css')\n
+    el.textContent = css\n
+    document.head.appendChild(el)\n
+    console.log('  1111')\n
+  }\n
+  insertStyle(${JSON.stringify(cssCode)})\n
+  export default insertStyle
+`
   return code
 }
