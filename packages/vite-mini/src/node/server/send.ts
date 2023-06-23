@@ -32,7 +32,6 @@ export function send(
     etag = getEtag(content, { weak: true }),
     cacheControl = 'no-cache',
     headers,
-    map,
   } = options
 
   if (res.writableEnded)
