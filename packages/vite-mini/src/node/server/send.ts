@@ -1,7 +1,10 @@
-import type { Request, Response } from 'express'
+import type {
+  IncomingMessage,
+  OutgoingHttpHeaders,
+  ServerResponse,
+} from 'node:http'
 import getEtag from 'etag'
 import type { SourceMap } from 'rollup'
-import { getCodeWithSourcemap } from '../sourcemap'
 
 const alias: Record<string, string | undefined> = {
   js: 'application/javascript',
@@ -13,12 +16,13 @@ const alias: Record<string, string | undefined> = {
 export interface SendOptions {
   etag?: string
   cacheControl?: string
-  headers?: Record<string, string | undefined>
+  headers?: OutgoingHttpHeaders
   map?: SourceMap | null
 }
+
 export function send(
-  req: Request,
-  res: Response,
+  req: IncomingMessage,
+  res: ServerResponse,
   // eslint-disable-next-line n/prefer-global/buffer
   content: string | Buffer,
   type: string,
@@ -47,12 +51,6 @@ export function send(
   if (headers) {
     for (const name in headers)
       res.setHeader(name, headers[name]!)
-  }
-
-  // inject source map reference
-  if (map && map.mappings) {
-    if (type === 'js' || type === 'css')
-      content = getCodeWithSourcemap(type, content.toString(), map)
   }
 
   res.statusCode = 200

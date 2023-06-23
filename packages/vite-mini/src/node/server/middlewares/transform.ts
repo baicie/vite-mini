@@ -20,20 +20,22 @@ export function transfromMiddleware(
   return async function vitemTransformMiddleware(
     req: Request, res: Response, next: NextFunction,
   ) {
-    debug?.(colors.red(`--> ${req.url}`))
     const type = req.params.type
     if (['.ts', '.js', '.css', '.vue'].some(item => req.url.includes(item))
       || type === 'style'
     ) {
     // 拿到最后返回结果
+      debug?.(colors.red(`--> ${req.url}`))
       const result = await resolveCodeAndTransForm(
         req.url,
         server.config,
       ) ?? ''
-      res.type('text/javascript')
+
       return send(req, res, result, 'js', {})
     }
-    next()
+    else {
+      next()
+    }
   }
 }
 

@@ -1,4 +1,3 @@
-import path from 'node:path'
 import type { Loader } from 'esbuild'
 import esbuild from 'esbuild'
 import * as vueCompiler from '@vue/compiler-sfc'
@@ -45,7 +44,7 @@ function transformVue(
   let code = ''
 
   const script = vueCompiler.compileScript(descriptor, {
-    id,
+    id: descriptor.filename,
   })
 
   if (script)
@@ -54,8 +53,8 @@ function transformVue(
   if (descriptor.template) {
     const temp = vueCompiler.compileTemplate({
       source: descriptor.template.content,
-      filename: path.basename(id),
-      id,
+      filename: descriptor.filename,
+      id: descriptor.filename,
     })
 
     code += `\n${temp.code}`
