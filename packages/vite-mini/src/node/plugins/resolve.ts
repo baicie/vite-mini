@@ -52,14 +52,14 @@ function resolveBareImportId(
   id: string,
   config: ViteDevServer['config'],
 ) {
-  const { pkgData = {}, pkgPath = '' } = resolvePackageData(id, config)
+  const { pkgData, pkgPath = '' } = resolvePackageData(id, config)
 
   let module = ''
 
-  if (pkgData.module) {
-    module = pkgData.module
+  if (pkgData?.module) {
+    module = pkgData?.module
   }
-  else if (pkgData.exports) {
+  else if (pkgData?.exports) {
     // module = pkgData.exports['.'].default
   }
 
@@ -75,7 +75,7 @@ function resolvePackageData(
 ): {
     pkgData: undefined | NormalizedPackageJson
     pkgPath: string
-  } | undefined {
+  } {
   let basedir = config.root
   while (basedir) {
     // 获取地址
@@ -95,6 +95,11 @@ function resolvePackageData(
     else {
       basedir = path.dirname(basedir)
     }
+  }
+
+  return {
+    pkgData: undefined,
+    pkgPath: '',
   }
 }
 
