@@ -1,6 +1,9 @@
 import type * as http from 'node:http'
 import path from 'node:path'
+import colors from 'picocolors'
 import express from 'express'
+import chokidar from 'chokidar'
+import { consola } from 'consola'
 import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
 
@@ -31,6 +34,7 @@ export interface ViteDevServer {
       code?: string
     }>
     cacheDir: string
+    watcher: chokidar.WatchOptions
   }
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
@@ -63,17 +67,30 @@ export async function _createServer(
   // https options
   const httpServer = await resolveHttpServer(app)
 
+  const root = normalizePath(process.cwd())
+
   const server: ViteDevServer = {
     httpServer,
     config: {
       server: {
         strictPort: false,
       },
-      root: normalizePath(process.cwd()),
+      root,
       logger: createLogger(),
       cacheDeps: {},
       transformCaches: {},
       cacheDir: path.join(normalizePath(process.cwd()), 'node_modules', VITECACHE, 'deps'),
+      watcher: {
+        disableGlobbing: true,
+        ignorePermissionErrors: true,
+        ignored: [
+          '**/.git/**',
+          '**/node_modules/**',
+          '**/test-results/**',
+          `${root}/node_modules/.vite/**`,
+        ],
+        ignoreInitial: true,
+      },
     },
     async listen(port?: number, isRestart?: boolean) {
       //
@@ -100,6 +117,16 @@ export async function _createServer(
     },
     resolvedUrls: null,
   }
+
+  // hrm
+  const watcher = chokidar.watch(
+    [server.config.root],
+    server.config.watcher,
+  )
+
+  watcher.on('change', (path, state) => {
+    consola.info(colors.green(path + state))
+  })
 
   // code
   app.use(transfromMiddleware(server))
