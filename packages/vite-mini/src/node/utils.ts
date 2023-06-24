@@ -78,7 +78,7 @@ export async function resolveServerUrls(
           network.push(url)
       })
   }
-  return { local, network }
+  return { local, network, port }
 }
 
 const postfixRE = /[?#].*$/s

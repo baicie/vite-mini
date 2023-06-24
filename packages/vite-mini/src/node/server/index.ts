@@ -44,6 +44,7 @@ export interface ViteDevServer {
 export interface ResolvedServerUrls {
   local: string[]
   network: string[]
+  port?: number
 }
 
 export async function createServer(

@@ -32,6 +32,7 @@ function createNodeConfig() {
     input: {
       index: path.resolve(__dirname, 'src/node/index.ts'),
       cli: path.resolve(__dirname, 'src/node/cli.ts'),
+      client: path.resolve(__dirname, 'src/client/client.ts'),
     },
     plugins: [
       nodeResolve({ preferBuiltins: true }),

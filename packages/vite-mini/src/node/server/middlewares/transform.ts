@@ -9,7 +9,8 @@ import { resolveId } from '../../plugins/resolve'
 import { clearUrl, createDebugger, normalizePath } from '../../utils'
 import type { ViteDevServer } from '../index'
 import { send } from '../send'
-import { transfromCode } from '../../plugins/transform'
+import { transformJavascript, transfromCode } from '../../plugins/transform'
+import { INJECTION } from '../../constants'
 import type { NextHandleFunction } from './index-html'
 
 const debug = createDebugger('vitem:transfrom')
@@ -33,10 +34,25 @@ export function transfromMiddleware(
 
       return send(req, res, result, 'js', {})
     }
+    else if (req.url === INJECTION) {
+      const clientPath = path.join(path.dirname(__dirname), 'client.js')
+      let result = await transformJavascript(
+        clientPath,
+        server.config,
+      )
+
+      result = replaceClientEnv(result, server)
+
+      return send(req, res, result, 'js', {})
+    }
     else {
       next()
     }
   }
+}
+
+function replaceClientEnv(code: string, server: ViteDevServer) {
+  return code.replace('__SERVER_HOST__', JSON.stringify(server.resolvedUrls?.port))
 }
 
 async function resolveCodeAndTransForm(

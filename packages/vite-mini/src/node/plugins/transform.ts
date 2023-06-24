@@ -1,8 +1,9 @@
+import fs from 'node:fs'
 import type { Loader } from 'esbuild'
 import esbuild from 'esbuild'
 import * as vueCompiler from '@vue/compiler-sfc'
 import type { ViteDevServer } from '../server'
-import {} from '@vitejs/plugin-vue'
+import { resolveId } from './resolve'
 
 // 转换资源 转换js
 export async function transfromCode(
@@ -90,11 +91,33 @@ function transformCss(
     const el = document.createElement('style')\n
     el.setAttribute('type', 'text/css')\n
     el.textContent = css\n
-    document.head.appendChild(el)\n
-    console.log('  1111')\n
+    document.head.appendChild(el)\n 
   }\n
   insertStyle(${JSON.stringify(cssCode)})\n
   export default insertStyle
 `
   return code
+}
+
+export async function transformJavascript(
+  id: string,
+  config: ViteDevServer['config'],
+) {
+  const loader: Loader = 'ts'
+
+  const resolve = resolveId(id, config, '')
+
+  const source = fs.readFileSync(resolve)
+
+  const res = await esbuild.transform(source, {
+    loader,
+    platform: 'browser',
+    format: 'esm',
+    logLevel: 'error',
+    target: 'es2020',
+    sourcemap: true,
+    charset: 'utf8',
+  })
+
+  return res.code
 }
