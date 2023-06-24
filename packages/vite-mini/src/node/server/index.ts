@@ -100,15 +100,15 @@ export async function _createServer(
     },
     resolvedUrls: null,
   }
-  app.use(servePublicMiddleware(server.config.root))
+
   // code
   app.use(transfromMiddleware(server))
 
-  app.use(servePublicMiddleware(path.join(server.config.root, 'public')))
+  // static
+  app.use(servePublicMiddleware(server.config))
 
   // index.html
   app.use(htmlFallBackMiddleware('/'))
-
   app.use(indexHtmlMiddleware(server))
 
   return server
