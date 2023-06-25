@@ -53,17 +53,6 @@ function transformVue(
   if (script)
     code += vueCompiler.rewriteDefault(script.content, '_sfc_main_')
 
-  // if (descriptor.template) {
-  //   const temp = vueCompiler.compileTemplate({
-  //     source: descriptor.template.content,
-  //     filename: descriptor.filename,
-  //     id: descriptor.filename,
-  //   })
-
-  //   code += `\n${temp.code}`
-  //   code += '\n_sfc_main_.render = render'
-  // }
-
   if (descriptor.styles)
     code += `\nimport '${id}?type=style'`
 
@@ -111,6 +100,22 @@ export async function transformJavascript(
 
   const res = await esbuild.transform(source, {
     loader,
+    platform: 'browser',
+    format: 'esm',
+    logLevel: 'error',
+    target: 'es2020',
+    sourcemap: true,
+    charset: 'utf8',
+  })
+
+  return res.code
+}
+
+export async function transformTypeScript(
+  code: string,
+) {
+  const res = await esbuild.transform(code, {
+    loader: 'ts',
     platform: 'browser',
     format: 'esm',
     logLevel: 'error',

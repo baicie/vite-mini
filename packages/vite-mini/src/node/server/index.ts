@@ -1,5 +1,4 @@
 import type * as http from 'node:http'
-import path from 'node:path'
 import colors from 'picocolors'
 import express from 'express'
 import chokidar from 'chokidar'
@@ -7,11 +6,12 @@ import { consola } from 'consola'
 import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
 
-import { DEFAULT_DEV_PORT, VITECACHE } from '../constants'
-import { normalizePath, resolveHostname, resolveServerUrls } from '../utils'
+import { DEFAULT_DEV_PORT } from '../constants'
+import { resolveHostname, resolveServerUrls } from '../utils'
 import type { Logger } from '../logger'
-import { createLogger, printServerUrls } from '../logger'
+import { printServerUrls } from '../logger'
 import { createDepsOptimizer } from '../optimizer'
+import { resolveConfig } from '../config'
 import { indexHtmlMiddleware } from './middlewares/index-html'
 import { htmlFallBackMiddleware } from './middlewares/html-fallback'
 import { transfromMiddleware } from './middlewares/transform'
@@ -19,7 +19,7 @@ import { servePublicMiddleware } from './middlewares/static'
 import type { WebSocketServerRaw } from './ws'
 import { createwebSocketServer } from './ws'
 
-interface InlineConfig {
+export interface InlineConfig {
 
 }
 
@@ -41,7 +41,7 @@ export interface ViteDevServer {
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
   printUrls(): void
-  ws: WebSocketServerRaw
+  ws?: WebSocketServerRaw
 }
 
 export interface ResolvedServerUrls {
@@ -64,39 +64,17 @@ export async function _createServer(
 ): Promise<ViteDevServer> {
   // const { root, server: serverConfig } = config
   // 加载vite.config.ts
-  // const config = await resolveConfig(inlineConfig, 'serve')
+  const config = await resolveConfig(inlineConfig)
   // 前面是各种配置文件
   const app = express()
 
   const httpServer = await resolveHttpServer(app)
 
-  const root = normalizePath(process.cwd())
-
-  const ws = createwebSocketServer()
+  const ws = options.ws ? createwebSocketServer() : undefined
 
   const server: ViteDevServer = {
     httpServer,
-    config: {
-      server: {
-        strictPort: false,
-      },
-      root,
-      logger: createLogger(),
-      cacheDeps: {},
-      transformCaches: {},
-      cacheDir: path.join(normalizePath(process.cwd()), 'node_modules', VITECACHE, 'deps'),
-      watcher: {
-        disableGlobbing: true,
-        ignorePermissionErrors: true,
-        ignored: [
-          '**/.git/**',
-          '**/node_modules/**',
-          '**/test-results/**',
-          `${root}/node_modules/.vite/**`,
-        ],
-        ignoreInitial: true,
-      },
-    },
+    config,
     async listen(port?: number) {
       //
       await createDepsOptimizer(server)

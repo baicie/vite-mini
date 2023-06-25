@@ -124,3 +124,6 @@ export function getHash(text: Buffer | string): string {
 export function clearUrl(url: string): string {
   return url.split('?')[0]
 }
+
+// eslint-disable-next-line no-new-func
+export const dynamicImport = new Function('file', 'return import(file)')
