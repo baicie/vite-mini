@@ -35,7 +35,7 @@ export function transfromMiddleware(
       return send(req, res, result, 'js', {})
     }
     else if (req.url === INJECTION) {
-      const clientPath = path.join(path.dirname(__dirname), 'client.js')
+      const clientPath = path.join(path.dirname(path.dirname(__dirname)), 'client', 'client.mjs')
       let result = await transformJavascript(
         clientPath,
         server.config,

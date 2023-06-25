@@ -32,7 +32,6 @@ function createNodeConfig() {
     input: {
       index: path.resolve(__dirname, 'src/node/index.ts'),
       cli: path.resolve(__dirname, 'src/node/cli.ts'),
-      client: path.resolve(__dirname, 'src/client/client.ts'),
     },
     plugins: [
       nodeResolve({ preferBuiltins: true }),
@@ -85,9 +84,31 @@ const __require = require;
   }
 }
 
+const clientConfig = defineConfig({
+  input: path.resolve(__dirname, 'src/client/client.ts'),
+  external: [],
+  plugins: [
+    typescript({
+      tsconfig: path.resolve(__dirname, 'src/client/tsconfig.json'),
+    }),
+  ],
+  output: {
+    file: path.resolve(__dirname, 'dist/client', 'client.mjs'),
+    sourcemap: true,
+    sourcemapPathTransform(relativeSourcePath) {
+      return path.basename(relativeSourcePath)
+    },
+    sourcemapIgnoreList() {
+      return true
+    },
+    format: 'esm',
+  },
+})
+
 // 打印rollup参数
 export default (commandL: any): RollupOptions[] => {
   return defineConfig([
+    clientConfig,
     createNodeConfig(),
   ])
 }

@@ -16,6 +16,8 @@ import { indexHtmlMiddleware } from './middlewares/index-html'
 import { htmlFallBackMiddleware } from './middlewares/html-fallback'
 import { transfromMiddleware } from './middlewares/transform'
 import { servePublicMiddleware } from './middlewares/static'
+import type { WebSocketServerRaw } from './ws'
+import { createwebSocketServer } from './ws'
 
 interface InlineConfig {
 
@@ -39,6 +41,7 @@ export interface ViteDevServer {
   httpServer: http.Server | null
   listen(port?: number, isRestart?: boolean): Promise<ViteDevServer>
   printUrls(): void
+  ws: WebSocketServerRaw
 }
 
 export interface ResolvedServerUrls {
@@ -64,11 +67,12 @@ export async function _createServer(
   // const config = await resolveConfig(inlineConfig, 'serve')
   // 前面是各种配置文件
   const app = express()
-  // const app = connect()
-  // https options
+
   const httpServer = await resolveHttpServer(app)
 
   const root = normalizePath(process.cwd())
+
+  const ws = createwebSocketServer()
 
   const server: ViteDevServer = {
     httpServer,
@@ -93,7 +97,7 @@ export async function _createServer(
         ignoreInitial: true,
       },
     },
-    async listen(port?: number, isRestart?: boolean) {
+    async listen(port?: number) {
       //
       await createDepsOptimizer(server)
       // 启动服务
@@ -117,6 +121,7 @@ export async function _createServer(
       }
     },
     resolvedUrls: null,
+    ws,
   }
 
   // hrm
