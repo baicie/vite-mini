@@ -7,7 +7,7 @@ import { consola } from 'consola'
 import { CONFIGFILE, VITECACHE } from './constants'
 import { createLogger } from './logger'
 import type { InlineConfig, ViteDevServer } from './server'
-import { dynamicImport, normalizePath } from './utils'
+import { dynamicImport, isObject, normalizePath } from './utils'
 import { transformTypeScript } from './plugins/transform'
 
 export interface UserConfigExport {
@@ -21,7 +21,7 @@ export async function resolveConfig(
 ): Promise<ViteDevServer['config']> {
   const root = normalizePath(process.cwd())
 
-  const config = {
+  const config: ViteDevServer['config'] = {
     ...inlineConfig,
     server: {
       strictPort: false,
@@ -44,26 +44,32 @@ export async function resolveConfig(
     },
   }
 
-  const fileConfig = resolveConfigFile(root)
+  const fileConfig = await resolveConfigFile(root)
 
-  return config
+  const merge = mergeConfigs(config, fileConfig ?? {}) as ViteDevServer['config']
+
+  consola.info('merge', merge)
+
+  return merge
 }
 
 async function resolveConfigFile(
   root: string,
-) {
+): Promise<UserConfigExport | undefined> {
   try {
     const filePath = path.join(root, CONFIGFILE)
     const raw = fs.readFileSync(filePath, { encoding: 'utf8' })
 
     const code = await resolveConfigAndTransform(raw)
 
-    const userConfig = await dynamicImport(
-      `data:text/javascript;base64,${
-            Buffer.from(code).toString('base64')}`,
-    )
+    const userConfig = (
+      await dynamicImport(
+        `data:text/javascript;base64,${
+              Buffer.from(code).toString('base64')}`,
+      )
+    ).default
 
-    consola.log('userConfig', userConfig)
+    return userConfig
   }
   catch (error) {
     consola.error(error)
@@ -93,4 +99,32 @@ async function resolveConfigAndTransform(raw: string) {
   })
 
   return magicstr.toString()
+}
+
+function mergeConfigs(
+  defaults: Record<string, any>,
+  overrides: Record<string, any>,
+  rootPath = '',
+) {
+  const merged: Record<string, any> = { ...defaults }
+
+  for (const key in overrides) {
+    const value = overrides[key]
+    if (value == null)
+      continue
+
+    const existing = merged[key]
+    if (isObject(existing) && isObject(value)) {
+      merged[key] = mergeConfigs(
+        existing,
+        value,
+        rootPath ? `${rootPath}.${key}` : key,
+      )
+      continue
+    }
+
+    merged[key] = value
+  }
+
+  return merged
 }
