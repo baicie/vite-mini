@@ -70,7 +70,7 @@ export async function _createServer(
 
   const httpServer = await resolveHttpServer(app)
 
-  const ws = options.ws ? createwebSocketServer(httpServer) : undefined
+  const ws = createwebSocketServer(httpServer)
 
   const server: ViteDevServer = {
     httpServer,
@@ -121,6 +121,22 @@ export async function _createServer(
   // index.html
   app.use(htmlFallBackMiddleware('/'))
   app.use(indexHtmlMiddleware(server))
+
+  if (httpServer) {
+    const listen = httpServer.listen.bind(httpServer)
+    httpServer.listen = (async (port: number, ...args: any[]) => {
+      try {
+        // ensure ws server started
+        ws.listen()
+        // await initServer()
+      }
+      catch (e) {
+        httpServer.emit('error', e)
+        return
+      }
+      return listen(port, ...args)
+    }) as any
+  }
 
   return server
 }

@@ -13,12 +13,14 @@ export function createwebSocketServer(
   server: Server,
 ) {
   let wss: WebSocketServerRaw
+  let wsHttpServer: Server | undefined
   const wsServer = server
+  const port = 24679
 
-  if (wsServer) {
+  if (server) {
     wss = new WebSocketServerRaw({ noServer: true })
-    wsServer.on('upgrade', (req, socket, head) => {
-      console.log('upgrade', wss.address(), wss.options)
+    server.on('upgrade', (req, socket, head) => {
+      console.log('upgrade')
       if (req.headers['sec-websocket-protocol'] === HMR_HEADER) {
         wss.handleUpgrade(req, socket as Socket, head, (ws) => {
           wss.emit('connection', ws, req)
@@ -40,7 +42,7 @@ export function createwebSocketServer(
       res.end(body)
     }) as Parameters<typeof createHttpServer>[1]
 
-    const wsHttpServer = createHttpServer(route)
+    wsHttpServer = createHttpServer(route)
     wss = new WebSocketServerRaw({ server: wsHttpServer })
   }
 
@@ -48,5 +50,9 @@ export function createwebSocketServer(
     console.log('connection')
   })
 
-  return wss
+  return {
+    listen: () => {
+      wsHttpServer?.listen(port, undefined)
+    },
+  }
 }
