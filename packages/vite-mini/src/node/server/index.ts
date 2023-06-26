@@ -70,7 +70,7 @@ export async function _createServer(
 
   const httpServer = await resolveHttpServer(app)
 
-  const ws = options.ws ? createwebSocketServer() : undefined
+  const ws = options.ws ? createwebSocketServer(httpServer) : undefined
 
   const server: ViteDevServer = {
     httpServer,

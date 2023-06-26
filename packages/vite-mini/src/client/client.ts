@@ -21,7 +21,7 @@ catch (error) {
 
 function setupWebsocket(post: number, fallBack: () => void) {
   console.debug(`[vitem] setup websocket with post:${post}`)
-  const socket = new WebSocket(`ws://172.0.0.1:${post}`, 'vitem-hrm')
+  const socket = new WebSocket(`ws://172.0.0.1:${post}`)
   let isOpen = false
 
   socket.addEventListener('open', () => {

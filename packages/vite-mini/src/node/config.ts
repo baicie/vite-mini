@@ -48,8 +48,6 @@ export async function resolveConfig(
 
   const merge = mergeConfigs(config, fileConfig ?? {}) as ViteDevServer['config']
 
-  consola.info('merge', merge)
-
   return merge
 }
 
