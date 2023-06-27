@@ -122,22 +122,6 @@ export async function _createServer(
   app.use(htmlFallBackMiddleware('/'))
   app.use(indexHtmlMiddleware(server))
 
-  if (httpServer) {
-    const listen = httpServer.listen.bind(httpServer)
-    httpServer.listen = (async (port: number, ...args: any[]) => {
-      try {
-        // ensure ws server started
-        ws.listen()
-        // await initServer()
-      }
-      catch (e) {
-        httpServer.emit('error', e)
-        return
-      }
-      return listen(port, ...args)
-    }) as any
-  }
-
   return server
 }
 
