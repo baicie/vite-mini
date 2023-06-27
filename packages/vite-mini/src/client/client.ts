@@ -6,14 +6,14 @@ declare const __SERVER_HOST__: number
 
 const serverHost = __SERVER_HOST__
 
-let websocket: WebSocket
+let socket: WebSocket
 
 try {
   // 失败时的回调
   const fallBack = () => {
-    websocket = setupWebsocket(serverHost, fallBack)
+    socket = setupWebsocket(serverHost, fallBack)
   }
-  websocket = setupWebsocket(serverHost, fallBack)
+  socket = setupWebsocket(serverHost, fallBack)
 }
 catch (error) {
   console.error(`[vitem] 启动失败：${error}`)
@@ -21,7 +21,8 @@ catch (error) {
 
 function setupWebsocket(post: number, fallBack: () => void) {
   console.debug(`[vitem] setup websocket with post:${post}`)
-  const socket = new WebSocket(`ws://127.0.0.1:${post}/`, 'vite-hmr')
+  const socket = new WebSocket(`ws://127.0.0.1:${post}/`, 'vitem-hmr')
+
   let isOpen = false
 
   socket.addEventListener('open', () => {
@@ -30,7 +31,7 @@ function setupWebsocket(post: number, fallBack: () => void) {
   }, { once: true })
 
   socket.addEventListener('message', async ({ data }) => {
-    console.log('close')
+    console.log('message')
     handleMessage(JSON.parse(data))
   })
 
@@ -51,12 +52,22 @@ function setupWebsocket(post: number, fallBack: () => void) {
   return socket
 }
 
-interface PlayLoad {
+type PlayLoad = ConnectedPayload
 
+export interface ConnectedPayload {
+  type: 'connected'
 }
 
 function handleMessage(payload: PlayLoad) {
-  console.log('handleMessage', payload)
+  switch (payload.type) {
+    case 'connected':
+      console.log('[vitem] server connected')
+      setInterval(() => {
+        if (socket.readyState === socket.OPEN)
+          socket.send('{"type":"ping"}')
+      }, 5000)
+      break
+  }
 }
 
 async function waitForSuccessfulPing(
