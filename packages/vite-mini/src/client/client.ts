@@ -26,17 +26,14 @@ function setupWebsocket(post: number, fallBack: () => void) {
   let isOpen = false
 
   socket.addEventListener('open', () => {
-    console.log('open')
     isOpen = true
   }, { once: true })
 
   socket.addEventListener('message', async ({ data }) => {
-    console.log('message')
     handleMessage(JSON.parse(data))
   })
 
   socket.addEventListener('close', async ({ wasClean }) => {
-    console.log('close')
     if (wasClean)
       return
 
@@ -45,80 +42,36 @@ function setupWebsocket(post: number, fallBack: () => void) {
       return
     }
     console.log('[vite] server connection lost. polling for restart...')
-    await waitForSuccessfulPing(post)
     location.reload()
   })
 
   return socket
 }
 
-type PlayLoad = ConnectedPayload
+type PlayLoad = ConnectedPayload | ConnectedPayloadUpdate
 
 export interface ConnectedPayload {
   type: 'connected'
 }
 
-function handleMessage(payload: PlayLoad) {
+export interface ConnectedPayloadUpdate {
+  type: 'update'
+  data: string
+}
+
+async function handleMessage(payload: PlayLoad) {
   switch (payload.type) {
     case 'connected':
       console.log('[vitem] server connected')
       setInterval(() => {
         if (socket.readyState === socket.OPEN)
           socket.send('{"type":"ping"}')
-      }, 5000)
+      }, 50000)
+      break
+    case 'update':
+      // eslint-disable-next-line no-case-declarations
+      const modeule = await import(payload.data)
+      console.log(modeule)
       break
   }
-}
-
-async function waitForSuccessfulPing(
-  post: number,
-  ms = 1000,
-) {
-  const ping = async () => {
-    console.log('ping')
-    try {
-      await fetch(`ws://172.0.0.1:${post}`, {
-        mode: 'no-cors',
-        headers: {
-          Accept: 'text/x-vite-ping',
-        },
-      })
-      return true
-    }
-    catch (error) {}
-    return false
-  }
-
-  if (await ping())
-    return
-
-  await wait(ms)
-
-  while (true) {
-    if (document.visibilityState === 'visible') {
-      if (await ping())
-        break
-
-      await wait(ms)
-    }
-    else {
-      await waitForWindowShow()
-    }
-  }
-}
-
-function waitForWindowShow() {
-  return new Promise<void>((resolve) => {
-    const onChange = async () => {
-      if (document.visibilityState === 'visible') {
-        resolve()
-        document.removeEventListener('visibilitychange', onChange)
-      }
-    }
-    document.addEventListener('visibilitychange', onChange)
-  })
-}
-
-function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
 }

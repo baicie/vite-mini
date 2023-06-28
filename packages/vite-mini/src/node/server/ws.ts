@@ -23,9 +23,9 @@ export function createwebSocketServer(
 
   wss.on('connection', (socket) => {
     socket.send(JSON.stringify({ type: 'connected' }))
-    socket.on('message', (raw) => {
-      console.log(JSON.parse(raw.toString()))
-    })
+    // socket.on('message', (raw) => {
+
+    // })
   })
 
   return wss

@@ -1,8 +1,6 @@
 import type * as http from 'node:http'
-import colors from 'picocolors'
 import express from 'express'
 import chokidar from 'chokidar'
-import { consola } from 'consola'
 import type { CommonServerOptions } from '../http'
 import { httpServerStart, resolveHttpServer } from '../http'
 
@@ -18,6 +16,7 @@ import { transfromMiddleware } from './middlewares/transform'
 import { servePublicMiddleware } from './middlewares/static'
 import type { WebSocketServerRaw } from './ws'
 import { createwebSocketServer } from './ws'
+import { handkeHRMUpdate } from './hrm'
 
 export interface InlineConfig {
 
@@ -109,7 +108,7 @@ export async function _createServer(
   )
 
   watcher.on('change', (path, state) => {
-    consola.info(colors.green(path + state))
+    handkeHRMUpdate(path, server)
   })
 
   // code
