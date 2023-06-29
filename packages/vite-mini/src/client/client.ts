@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* eslint-disable no-console */
 
 console.debug('[vitem] connecting...')
@@ -48,7 +49,7 @@ function setupWebsocket(post: number, fallBack: () => void) {
   return socket
 }
 
-type PlayLoad = ConnectedPayload | ConnectedPayloadUpdate
+type PlayLoad = ConnectedPayload | ConnectedPayloadUpdate | ConnectedPayloadReload
 
 export interface ConnectedPayload {
   type: 'connected'
@@ -56,8 +57,18 @@ export interface ConnectedPayload {
 
 export interface ConnectedPayloadUpdate {
   type: 'update'
+  fileType: 'css' | 'vue'
   data: string
 }
+
+export interface ConnectedPayloadReload {
+  type: 'reload'
+}
+
+const content = new Map<string, {
+  value: string
+  callback?: (mod: any) => void
+}>()
 
 async function handleMessage(payload: PlayLoad) {
   switch (payload.type) {
@@ -69,9 +80,37 @@ async function handleMessage(payload: PlayLoad) {
       }, 50000)
       break
     case 'update':
-      // eslint-disable-next-line no-case-declarations
       const modeule = await import(payload.data)
-      console.log(modeule)
+      switch (payload.fileType) {
+        case 'css':
+          break
+        case 'vue':
+          const con = content.get(payload.data)
+          console.log(JSON.stringify(modeule))
+          con?.callback?.(modeule)
+          break
+      }
+      break
+    case 'reload':
+      window.location.reload()
       break
   }
 }
+
+// 收集
+export function createHRMContext(path: string) {
+  if (content.get(path))
+    return
+
+  return {
+    update(callback: (mod: any) => void) {
+      content.set(path, { value: path, callback })
+    },
+  }
+}
+
+// const _hot_context = createHRMContext('')
+
+// _hot_context?.update((mod) => {
+//   console.log(mod)
+// })

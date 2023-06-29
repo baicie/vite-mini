@@ -11,6 +11,7 @@ import type { ViteDevServer } from '../index'
 import { send } from '../send'
 import { transformJavascript, transfromCode } from '../../plugins/transform'
 import { INJECTION } from '../../constants'
+import { injectHRMCode, injectHRMCss } from '../hrm'
 import type { NextHandleFunction } from './index-html'
 
 const debug = createDebugger('vitem:transfrom')
@@ -80,7 +81,27 @@ async function resolveCodeAndTransForm(
     config,
   )
 
-  return importResetCode
+  // vue hrm
+  let res = ''
+  if (id.endsWith('.vue')) {
+    res = injectHRMCode(
+      id,
+      importResetCode,
+    )
+  }
+  // css update
+  else if (id.endsWith('.css') || id.includes('type=style')) {
+    res = injectHRMCss(
+      id,
+      importResetCode,
+    )
+  }
+  // ts reload
+  else {
+    res = importResetCode ?? ''
+  }
+
+  return res
 }
 
 // 转换import
