@@ -9,18 +9,18 @@ import { resolveId } from './resolve'
 export async function transfromCode(
   id: string,
   code: string,
-  config: ViteDevServer['config'],
+  origin: string,
 ) {
   let temp = code
-  if (id.endsWith('.vue')) {
+  if (id.endsWith('.vue') && !origin.includes('type=style')) {
     const vueToJs = transformVue(
       id, code,
     )
 
     temp = vueToJs
   }
-  else if (id.endsWith('.css') || id.includes('type=style')) {
-    temp = transformCss(id, code)
+  else if (id.endsWith('.css') || origin.includes('type=style')) {
+    temp = transformCss(origin, code)
   }
 
   const loader: Loader = 'ts'
@@ -75,16 +75,17 @@ function transformCss(
     }).code
   }
 
-  const code = `
-  function insertStyle(css) {\n
-    const el = document.createElement('style')\n
-    el.setAttribute('type', 'text/css')\n
-    el.textContent = css\n
-    document.head.appendChild(el)\n 
-  }\n
-  insertStyle(${JSON.stringify(cssCode)})\n
-  export default insertStyle
-`
+  const code = [
+    'function insertStyle(css) {',
+    'const el = document.createElement(\'style\')',
+    'el.setAttribute(\'type\', \'text/css\')',
+    `el.setAttribute(\'souceId\', "${id}")`,
+    'el.textContent = css',
+    'document.head.appendChild(el)',
+    '}',
+    `insertStyle(${JSON.stringify(cssCode)})`,
+    'export default insertStyle',
+  ].join('\n')
   return code
 }
 

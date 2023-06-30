@@ -8,6 +8,7 @@ export function handkeHRMUpdate(
   id: string,
   server: ViteDevServer,
 ) {
+  const timestamp = Date.now()
   const wss = server.ws
   const filePath = `/${normalizePath(path.relative(server.config.root, id))}`
   consola.log(colors.green(`file changed ${filePath}`))
@@ -15,8 +16,18 @@ export function handkeHRMUpdate(
   wss?.clients.forEach((client) => {
     client.send(JSON.stringify({
       type: 'update',
-      data: filePath,
+      path: filePath,
       fileType: 'vue',
+      timestamp,
+    }))
+  })
+
+  wss?.clients.forEach((client) => {
+    client.send(JSON.stringify({
+      type: 'update',
+      path: `${filePath}?type=style`,
+      fileType: 'vue',
+      timestamp,
     }))
   })
 }
@@ -26,20 +37,23 @@ export function injectHRMCode(
   code?: string,
 ) {
   // /@vitem/client
-  const header = 'import {createHRMContext} from "/@vitem/client";\n'
-  + `const _hot_context = createHRMContext("${id}");\n`
+  const header = ['import {createHRMContext,exporthelper} from "/@vitem/client";',
+  `const _hot_context = createHRMContext("${id}");`,
+  ].join('\n')
   const footer = [
     `_sfc_main_.__hmrId = "${id}";`,
+    'typeof __VUE_HMR_RUNTIME__ !== "undefined" && __VUE_HMR_RUNTIME__.createRecord(stdin_default.__hmrId, _sfc_main_);',
     '_hot_context?.update((mod) => {',
     'if (!mod)',
     'return;',
     'const { default: updated } = mod;',
-    'console.log(updated)',
+    'console.log(JSON.stringify(mod.setup),mod.setup)',
     '__VUE_HMR_RUNTIME__.reload(updated.__hmrId, updated);',
     '})',
+    'export default exporthelper(_sfc_main_,[]);',
   ].join('\n')
 
-  return header + code + footer
+  return header + code?.replace('export { stdin_default as default };', '') + footer
 }
 
 export function injectHRMCss(

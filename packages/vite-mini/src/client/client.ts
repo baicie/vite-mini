@@ -58,11 +58,13 @@ export interface ConnectedPayload {
 export interface ConnectedPayloadUpdate {
   type: 'update'
   fileType: 'css' | 'vue'
-  data: string
+  path: string
+  timestamp: number | boolean
 }
 
 export interface ConnectedPayloadReload {
   type: 'reload'
+  timestamp: number | boolean
 }
 
 const content = new Map<string, {
@@ -80,14 +82,14 @@ async function handleMessage(payload: PlayLoad) {
       }, 50000)
       break
     case 'update':
-      const modeule = await import(payload.data)
+      const module = await import(`${payload.path}?t=${payload.timestamp}`)
       switch (payload.fileType) {
         case 'css':
           break
         case 'vue':
-          const con = content.get(payload.data)
-          console.log(JSON.stringify(modeule))
-          con?.callback?.(modeule)
+          const con = content.get(payload.path)
+          console.log(JSON.stringify(module))
+          con?.callback?.(module)
           break
       }
       break
@@ -114,3 +116,10 @@ export function createHRMContext(path: string) {
 // _hot_context?.update((mod) => {
 //   console.log(mod)
 // })
+export function exporthelper(sfc: { __vccOpts: any }, props: any) {
+  const target = sfc.__vccOpts || sfc
+  for (const [key, val] of props)
+    target[key] = val
+
+  return target
+}

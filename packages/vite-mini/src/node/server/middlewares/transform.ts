@@ -73,7 +73,7 @@ async function resolveCodeAndTransForm(
   // 拿到源码
   const code = fs.readFileSync(sourceId, { encoding: 'utf-8' })
 
-  const jscode = await transfromCode(id, code, config)
+  const jscode = await transfromCode(sourceId, code, id)
 
   const importResetCode = await transfromImport(
     sourceId,
@@ -83,7 +83,7 @@ async function resolveCodeAndTransForm(
 
   // vue hrm
   let res = ''
-  if (id.endsWith('.vue')) {
+  if (sourceId.endsWith('.vue') && !id.includes('type=style')) {
     res = injectHRMCode(
       id,
       importResetCode,
@@ -115,7 +115,7 @@ async function transfromImport(
 
     const magicstr = new MagicStr(source)
 
-    const [imports] = importParse(source)
+    const [imports, exports] = importParse(source)
 
     imports.forEach((imp) => {
       if (imp.n) {
@@ -129,6 +129,12 @@ async function transfromImport(
         magicstr.overwrite(imp.s, imp.e, newPath, { contentOnly: true })
       }
     })
+    if (id.endsWith('.vue')) {
+      exports.forEach((exp) => {
+        if (exp.n)
+          magicstr.overwrite(exp.ls, exp.e, '', { contentOnly: true })
+      })
+    }
 
     return magicstr.toString()
   }

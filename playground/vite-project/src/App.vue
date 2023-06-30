@@ -10,8 +10,8 @@ import HelloWorld from './components/HelloWorld.vue'
     <a href="https://vuejs.org/" target="_blank">
       <img src="./assets/vue.svg" class="logo vue" alt="Vue logo">
     </a>
+    12
   </div>
-  123
   <!-- <a-button>a-button</a-button> -->
   <HelloWorld msg="Vite + Vue" />
 </template>
@@ -24,7 +24,7 @@ import HelloWorld from './components/HelloWorld.vue'
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em red);
 }
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
