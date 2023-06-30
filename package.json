@@ -7,7 +7,8 @@
   "scripts": {
     "test-serve": "vitest run -c vitest.config.e2e.ts",
     "cz": "cz",
-    "dev": "pnpm run -C packages/vite-mini dev"
+    "dev": "pnpm run -C packages/vite-mini dev",
+    "build": "pnpm run -C packages/vite-mini build-bundle"
   },
   "keywords": [],
   "author": "",

@@ -1,5 +1,10 @@
 function start() {
-  return import('../dist/node/cli.js')
+  try {
+    return import('../dist/node/cli.js')
+  }
+  catch (error) {
+    console.error(error)
+  }
 }
 
 const debugIndex = process.argv.findIndex(arg => /^(?:-d|--debug)$/.test(arg))
